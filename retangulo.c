@@ -58,3 +58,19 @@ int cord_y_ret(RETANGULO r){
     retangulo *ret = ((retangulo*)r);
     return ret->y;
 }    
+
+int area_ret(RETANGULO r){
+     retangulo *ret = ((retangulo*)r);
+     return ret->h*ret->w;
+}
+
+int width_ret(RETANGULO r){
+     retangulo *ret = ((retangulo*)r);
+     return ret->w;
+}
+
+int heigth_ret(RETANGULO r){
+     retangulo *ret = ((retangulo*)r);
+     return ret->h;
+}
+

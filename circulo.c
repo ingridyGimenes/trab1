@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "circulo.h"
-        
+
 #define PI  3.14159
 
 typedef struct{
@@ -13,7 +13,11 @@ typedef struct{
 
 CIRCLE cria_circulo(int ID, int cod_x, int cod_y, double r, char cor_P, char cor_B){
     circulo *C = (circulo*)malloc(sizeof(circulo));
-    if(C){
+    if(C==NULL){
+        printf("erro na criacao do circulo");
+        exit(1);
+    }
+
         C->id = ID;
         C->x = cod_x;
         C->y = cod_y;
@@ -22,22 +26,19 @@ CIRCLE cria_circulo(int ID, int cod_x, int cod_y, double r, char cor_P, char cor
         C->cor_b = (char*)malloc(strlen(cor_B)+1);
 
             if(C->cor_b == NULL){
-                printf("erro ao alocar cor");
+                printf("erro ao alocar corB");
                 exit(1);
             }else strcpy(C->cor_b, cor_B);
 
         C->cor_p = (char*)malloc(strlen(cor_P)+1);
 
             if(C->cor_p == NULL){
-                printf("erro ao alocar cor");
+                printf("erro ao alocar corP");
                 exit(1);
             }else strcpy(C->cor_p, cor_P);
 
 
-    }else{
-        printf("erro na criacao do circulo");
-        exit(1);
-    }
+   
 }
 
 int get_id_circ(CIRCLE c){

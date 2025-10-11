@@ -146,3 +146,49 @@ char* getSize(Estilo e){
     estilo* es = ((estilo*)e);
     return es->size;
 }
+
+
+void set_codx_txt(TEXTO t, int Cx){
+    texto* T = ((texto*)t);
+    T->x = Cx;
+}
+
+void set_cody_txt(TEXTO t, int Cy){
+     texto* T = ((texto*)t);
+    T->x = Cy;
+}
+
+void set_corB_txt(TEXTO t, char* cor_b){
+     texto* T = ((texto*)t);
+    strcpy(T->corB, cor_b);
+}
+
+void set_corP_txt(TEXTO t, char* cor_p){
+     texto* T = ((texto*)t);
+    strcpy(T->corB, cor_p);
+}
+
+void set_ancora_txt(TEXTO t, char* anc){
+    texto* T = ((texto*)t);
+    strcpy(T->corB, anc);
+}
+
+void set_txto_txt(TEXTO t, char* cont){
+     texto* T = ((texto*)t);
+    strcpy(T->txto, cont);
+}
+
+void setFamily(Estilo e, char* familia){
+     estilo* E = ((estilo*)e);
+   strcpy(E->family, familia);
+}
+
+void setWeight(Estilo e, char* wgt){
+    estilo* E = ((estilo*)e);
+    strcpy(E->weight, wgt);
+}
+
+void setSize(Estilo e, char* sz){
+     estilo* E = ((estilo*)e);
+    strcpy(E->size, sz);
+}

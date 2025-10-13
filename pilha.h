@@ -10,4 +10,13 @@ void* retira_da_pilha(void* pilha);
 
 void imprime_pilha(void* pilha);
 
+void* esvazia_pilha(void* pilha);
+
+void* primeiro_pilha(void* pilha);
+
+void* segundo_pilha(void* pilha);
+
+int tamanho_pilha(void* pilha);
+
+
 #endif

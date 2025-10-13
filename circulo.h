@@ -29,4 +29,6 @@ void set_corP_cir(CIRCLE c, char* corP);
 
 double calcula_area_circulo(CIRCLE c);
 
+void exclui_circulo(CIRCLE c);
+
 #endif

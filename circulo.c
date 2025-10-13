@@ -100,3 +100,15 @@ double calcula_area_circulo(CIRCLE c){
     circulo *cir = ((circulo*)c);
     return PI*(cir->raio*cir->raio);
 }
+
+void exclui_circulo(CIRCLE c){
+    circulo *cir = (circulo*)c;
+    if(cir == NULL){
+        printf("circulo nn existe");
+        return;
+    }
+
+    free(cir->cor_b);
+    free(cir->cor_p);
+    free(cir);
+}

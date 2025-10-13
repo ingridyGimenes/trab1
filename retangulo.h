@@ -32,4 +32,7 @@ void set_width_ret(RETANGULO r, float W);
 void set_corB_ret(RETANGULO r, char* corB);
 
 void set_corP_ret(RETANGULO r, char* corP);
+
+void exclui_retangulo(RETANGULO r);
+
 #endif

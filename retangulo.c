@@ -115,3 +115,15 @@ void set_corP_ret(RETANGULO r, char* corP){
     retangulo *ret = ((retangulo*)r);
     strcpy(ret->cor_p, corP);
 }
+
+void exclui_retangulo(RETANGULO r){
+    retangulo *ret = (retangulo*)r;
+    if(ret == NULL){
+        printf("retangulo nn existe");
+        return;
+    }
+
+    free(ret->cor_b);
+    free(ret->cor_p);
+    free(ret);
+}

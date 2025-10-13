@@ -17,7 +17,7 @@ typedef struct{
 
 typedef Fila* pont_f;
 
-void cria_lista(){
+void cria_fila(){
    pont_f f = (pont_f)malloc(sizeof(Fila));
     f->comeco = NULL;
     f->fim = NULL;
@@ -28,6 +28,11 @@ void cria_lista(){
 void add_na_fila(void* fila, void* valor){
     pont_f f = (pont_f)fila;
     pont_no temp = (pont_no)malloc(sizeof(no));
+
+    if(temp==NULL){
+        print("erro ao alocar novo no");
+        exit(1);
+    }
 
     if(f->fim==NULL){
         f->comeco = temp;

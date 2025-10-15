@@ -6,15 +6,15 @@
 
 typedef struct{
     int i; //id
-    int x; //cordenada x
-    int y; //cordenada y
-    float w; //largura
-    float h; //altura
+    double x; //cordenada x
+    double y; //cordenada y
+    double w; //largura
+    double h; //altura
     char *cor_b; //cor de borda
     char *cor_p; //cor do preenchimento
 }retangulo;
 
-RETANGULO cria_retangulo(int i, int x, int y, float w, float h, char cor_b, char cor_p){
+void* cria_retangulo(int i, double x, double y, double w, double h, char* cor_b, char* cor_p){
     retangulo *r = (retangulo*)malloc(sizeof(retangulo));
     if(r){
         r->i = i;
@@ -22,19 +22,10 @@ RETANGULO cria_retangulo(int i, int x, int y, float w, float h, char cor_b, char
         r->y = y;
         r->w = w;
         r->h = h;
-        r->cor_b = (char*)malloc(sizeof(cor_b)*(strlen(cor_b)+1));
-        r->cor_p = (char*)malloc(sizeof(cor_p)*(strlen(cor_p)+1));
-        if(r->cor_b == NULL || r->cor_p == NULL){
-            printf("erro ao definir cores");
-            free(r->cor_b);
-            free(r->cor_p);
-            exit(1);
-        }else{
-            strcpy(r->cor_b, cor_b);
-            strcpy(r->cor_p, cor_p);
-        }
+        r->cor_b = strdup(cor_b);
+        r->cor_p = strdup(cor_p);
         
-        return r;
+        return (RETANGULO)r;
 
 
     }else{
@@ -49,24 +40,24 @@ int le_id_ret(RETANGULO r){
         return ret->i;
     }
 
-int get_cord_x_ret(RETANGULO r){
+double get_cord_x_ret(RETANGULO r){
     retangulo *ret = ((retangulo*)r);
     return ret->x;
 } 
 
-int get_cord_y_ret(RETANGULO r){
+double get_cord_y_ret(RETANGULO r){
     retangulo *ret = ((retangulo*)r);
     return ret->y;
 }    
 
 
 
-int get_width_ret(RETANGULO r){
+double get_width_ret(RETANGULO r){
      retangulo *ret = ((retangulo*)r);
      return ret->w;
 }
 
-int get_heigth_ret(RETANGULO r){
+double get_heigth_ret(RETANGULO r){
      retangulo *ret = ((retangulo*)r);
      return ret->h;
 }
@@ -81,39 +72,46 @@ char* get_corP_ret(RETANGULO r){
     return ret->cor_p;
 }
 
-int calcula_area_ret(RETANGULO r){
+double calcula_area_ret(RETANGULO r){
      retangulo *ret = ((retangulo*)r);
      return ret->h*ret->w;
 }
 
-void set_cordX_ret(RETANGULO r, int cordX){
+void setIdRetangulo(RETANGULO r, int id){
+    retangulo* ret = (retangulo*)r;
+    ret->i = id;
+}
+
+void set_cordX_ret(RETANGULO r, double cordX){
     retangulo *ret = ((retangulo*)r);
     ret->x = cordX;
 }
 
-void set_cordY_ret(RETANGULO r, int cordY){
+void set_cordY_ret(RETANGULO r, double cordY){
     retangulo *ret = ((retangulo*)r);
     ret->y = cordY;
 }
 
-void set_height_ret(RETANGULO r, float H){
+void set_height_ret(RETANGULO r, double H){
     retangulo *ret = ((retangulo*)r);
     ret->h = H;
 }
 
-void set_width_ret(RETANGULO r, float W){
+void set_width_ret(RETANGULO r, double W){
     retangulo *ret = ((retangulo*)r);
     ret->w = W;
 }
 
 void set_corB_ret(RETANGULO r, char* corB){
     retangulo *ret = ((retangulo*)r);
-    strcpy(ret->cor_b, corB);
+    free(ret->cor_b);
+    ret->cor_b = strdup(corB);
 }
 
 void set_corP_ret(RETANGULO r, char* corP){
     retangulo *ret = ((retangulo*)r);
-    strcpy(ret->cor_p, corP);
+    free(ret->cor_p);
+    ret->cor_p = strdup(corP);
 }
 
 void exclui_retangulo(RETANGULO r){
@@ -126,4 +124,21 @@ void exclui_retangulo(RETANGULO r){
     free(ret->cor_b);
     free(ret->cor_p);
     free(ret);
+}
+
+RETANGULO clonaRetangulo(RETANGULO r, int novoId) {
+   retangulo* orig = (retangulo*)r;
+    retangulo* novo = (retangulo*)malloc(sizeof(retangulo));
+
+    novo->i = novoId;
+    novo->x = orig->x;
+    novo->y = orig->y;
+    novo->w = orig->w;
+    novo->h = orig->h;
+
+    // Troca as cores da borda e do preenchimento
+    novo->cor_b = strdup(orig->cor_p);
+    novo->cor_p = strdup(orig->cor_b);
+
+    return (RETANGULO)novo;
 }

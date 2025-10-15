@@ -12,8 +12,8 @@ typedef struct{
 typedef struct{
 
     int id;
-    int x;
-    int y;
+    double x;
+    double y;
     char *corB;
     char *corP;
     char *ancora;
@@ -54,7 +54,7 @@ Estilo cria_estilo(char* Family, char* Weight, char* Size ){
         return ts;
 }
 
-TEXTO cria_texto( int i, int codX, int codY, char *cor_b, char *cor_p, char *a, char *TXTO){
+TEXTO cria_texto( int i, double codX, double codY, char *cor_b, char *cor_p, char *a, char *TXTO){
     texto *txt = (texto*)malloc(sizeof(texto));
         
         if(txt == NULL){
@@ -102,12 +102,12 @@ int get_id_txt(TEXTO t){
     return txt->id;
 }
 
-int get_codx_txt(TEXTO t){
+double get_codx_txt(TEXTO t){
     texto *txt = ((texto*)t);
     return txt->x;
 }
 
-int get_cody_txt(TEXTO t){
+double get_cody_txt(TEXTO t){
     texto *txt = ((texto*)t);
     return txt->y;
 }
@@ -148,12 +148,12 @@ char* getSize(Estilo e){
 }
 
 
-void set_codx_txt(TEXTO t, int Cx){
+void set_codx_txt(TEXTO t, double Cx){
     texto* T = ((texto*)t);
     T->x = Cx;
 }
 
-void set_cody_txt(TEXTO t, int Cy){
+void set_cody_txt(TEXTO t, double Cy){
      texto* T = ((texto*)t);
     T->x = Cy;
 }

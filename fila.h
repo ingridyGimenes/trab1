@@ -1,6 +1,8 @@
 #ifndef fila_h
 #define fila_h
 
+typedef void *Fila;
+
 void cria_fila();
 
 void add_na_fila(void* fila, void* valor);
@@ -16,6 +18,5 @@ int tamanho_fila(void* fila);
 void* primeiro_fila(void* fila);
 
 void* segundo_fila(void* fila);
-
 
 #endif

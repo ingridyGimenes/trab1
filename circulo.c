@@ -1,114 +1,123 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "circulo.h"
 
-#define PI  3.14159
+#define PI 3.14159
 
 typedef struct{
- int id;
- int x, y;
- double raio;
- char *cor_b, *cor_p;
+    int id;
+    double x, y;
+    double raio;
+    char *cor_b, *cor_p;
 }circulo;
 
-CIRCLE cria_circulo(int ID, int cod_x, int cod_y, double r, char cor_P, char cor_B){
-    circulo *C = (circulo*)malloc(sizeof(circulo));
-    if(C==NULL){
-        printf("erro na criacao do circulo");
+
+CIRCLE criaCirculoInterno(int id, double x, double y, double r, const char* corb, const char* corp) {
+    circulo* c = (circulo*)malloc(sizeof(circulo));
+    if (c == NULL) {
+        fprintf(stderr, "Erro na criação do círculo!\n");
         exit(1);
     }
 
-        C->id = ID;
-        C->x = cod_x;
-        C->y = cod_y;
-        C->raio = r;
+    c->id = id;
+    c->x = x;
+    c->y = y;
+    c->raio = r;
 
-        C->cor_b = (char*)malloc(strlen(cor_B)+1);
+    c->cor_b = strdup(corb);
+    c->cor_p = strdup(corp);
 
-            if(C->cor_b == NULL){
-                printf("erro ao alocar corB");
-                exit(1);
-            }else strcpy(C->cor_b, cor_B);
-
-        C->cor_p = (char*)malloc(strlen(cor_P)+1);
-
-            if(C->cor_p == NULL){
-                printf("erro ao alocar corP");
-                exit(1);
-            }else strcpy(C->cor_p, cor_P);
-
-
-   
+    return (CIRCLE)c;
 }
 
-int get_id_circ(CIRCLE c){
-    circulo *cir = ((circulo*)c);
-    return cir->id;
+
+int getIdCirculo(CIRCLE c) {
+    return ((circulo*)c)->id;
 }
 
-int get_cordx_cir(CIRCLE c){
-    circulo *cir = ((circulo*)c);
-    return cir->x;
+double getXCirculo(CIRCLE c) {
+    return ((circulo*)c)->x;
 }
 
-int get_cordy_cir(CIRCLE c){
-    circulo *cir = ((circulo*)c);
-    return cir->y;
+double getYCirculo(CIRCLE c) {
+    return ((circulo*)c)->y;
 }
 
-int get_raio_cir(CIRCLE c){
-    circulo *cir = ((circulo*)c);
-    return cir->raio;
+double getRaioCirculo(CIRCLE c) {
+    return ((circulo*)c)->raio;
 }
 
-char* get_corB_cir(CIRCLE c){
-     circulo *cir = ((circulo*)c);
-    return cir->cor_b;
+const char* getCorBordaCirculo(CIRCLE c) {
+    return ((circulo*)c)->cor_b;
 }
 
-char* get_corP_cir(CIRCLE c){
-     circulo *cir = ((circulo*)c);
-    return cir->cor_p;
+const char* getCorPreenchimentoCirculo(CIRCLE c) {
+    return ((circulo*)c)->cor_p;
 }
 
-void set_x_cir(CIRCLE c, int x){
-    circulo *cir = ((circulo*)c);
+void setIdCirculo(CIRCLE c, int id){
+    circulo* cir = (circulo*)c;
+    cir->id = id;
+}
+
+void setYCirculo(CIRCLE c, double y) {
+    circulo* cir = (circulo*)c;
+    cir->y = y;
+}
+
+void setXCirculo(CIRCLE c, double x) {
+    circulo* cir = (circulo*)c;
     cir->x = x;
 }
 
-void set_y_cir(CIRCLE c, int Y){
-    circulo *cir = ((circulo*)c);
-    cir->y = Y;
+void setCorBordaCirculo(CIRCLE c, const char* novaCor) {
+    circulo* cir = (circulo*)c;
+    free(cir->cor_b);
+    cir->cor_b = strdup(novaCor);
 }
 
-void set_raio_cir(CIRCLE c, int r){
-    circulo *cir = ((circulo*)c);
+void setCorPreenchimentoCirculo(CIRCLE c, const char* novaCor) {
+    circulo* cir = (circulo*)c;
+    free(cir->cor_p);
+    cir->cor_p = strdup(novaCor);
+}
+
+void setRCirculo(CIRCLE c, double r){
+
+    circulo* cir = (circulo*)c;
     cir->raio = r;
 }
 
-void set_corB_cir(CIRCLE c, char* corB){
-    circulo *cir = ((circulo*)c);
-    strcpy(cir->cor_b, corB);
+
+double areaCirculo(CIRCLE c) {
+    circulo* cir = (circulo*)c;
+    return PI * cir->raio * cir->raio;
 }
 
-void set_corP_cir(CIRCLE c, char* corP){
-    circulo *cir = ((circulo*)c);
-    strcpy(cir->cor_p, corP);
+
+CIRCLE clonaCirculo(CIRCLE c, int novoId) {
+    circulo* orig = (circulo*)c;
+    circulo* novo = (circulo*)malloc(sizeof(circulo));
+
+    novo->id = novoId;
+    novo->x = orig->x;
+    novo->y = orig->y;
+    novo->raio = orig->raio;
+
+    // Troca as cores da borda e do preenchimento
+    novo->cor_b = strdup(orig->cor_p);
+    novo->cor_p = strdup(orig->cor_b);
+
+    return (CIRCLE)novo;
 }
 
-double calcula_area_circulo(CIRCLE c){
-    circulo *cir = ((circulo*)c);
-    return PI*(cir->raio*cir->raio);
-}
 
-void exclui_circulo(CIRCLE c){
-    circulo *cir = (circulo*)c;
-    if(cir == NULL){
-        printf("circulo nn existe");
-        return;
-    }
-
+void destroiCirculo(CIRCLE c) {
+    circulo* cir = (circulo*)c;
+    if (!cir) return;
     free(cir->cor_b);
     free(cir->cor_p);
     free(cir);
 }
+

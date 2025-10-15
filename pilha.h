@@ -1,8 +1,9 @@
 #ifndef pilha_h
 #define pilha_h
 
+typedef void *Pilha;
 
-void cria_pilha();
+void* cria_pilha();
 
 void add_na_pilha(void* pilha, void* valor);
 

@@ -17,8 +17,8 @@ typedef struct{
 
 typedef Pilha* pont_p;
 
-void cria_pilha(){
-    pont_p p = (pont_p*)malloc(sizeof(Pilha));
+void* cria_pilha(){
+    pont_p p = (pont_p)malloc(sizeof(Pilha));
 
     if(p==NULL){
         printf("erro ao alocar pilha");
@@ -31,12 +31,12 @@ void cria_pilha(){
     return (void*)p;
 }
 
-void add_na_pilha(void* pilha, void* valor){
+pont_p add_na_pilha(void* pilha, void* valor){
     pont_p p = (pont_p)pilha;
     pont_no temp = (pont_no)malloc(sizeof(no));
 
      if(temp==NULL){
-        print("erro ao alocar novo no");
+        printf("erro ao alocar novo no");
         exit(1);
     }
 
@@ -79,7 +79,7 @@ void imprime_pilha(void* pilha){
     printf("\n");
 }
 
-void* esvazia_pilha(void* pilha){
+void esvazia_pilha(void* pilha){
     pont_p p = (pont_p)pilha;
     pont_no aux = p->comeco;
 

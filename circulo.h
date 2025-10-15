@@ -1,34 +1,29 @@
-#ifndef circulo_h
-#define circulo_h
+#ifndef CIRCULO_H
+#define CIRCULO_H
 
-typedef void *CIRCLE;
+typedef void* CIRCLE;
 
-CIRCLE cria_circulo(int ID, int cod_x, int cod_y, double r, char cor_P, char cor_B);
+// Funções internas chamadas por formas.c
+CIRCLE criaCirculoInterno(int id, double x, double y, double r, const char* corb, const char* corp);
 
-int get_id_circ(CIRCLE c);
 
-int get_cordx_cir(CIRCLE c);
+int getIdCirculo(CIRCLE c);
+double getXCirculo(CIRCLE c);
+double getYCirculo(CIRCLE c);
+double getRaioCirculo(CIRCLE c);
 
-int get_cordy_cir(CIRCLE c);
+const char* getCorBordaCirculo(CIRCLE c);
+const char* getCorPreenchimentoCirculo(CIRCLE c);
 
-int get_raio_cir(CIRCLE c);
+void setIdCirculo( CIRCLE c, int id);
+void setPosCirculo(CIRCLE c, double x, double y);
+void setYCirculo(CIRCLE c, double y);
+void setXCirculo(CIRCLE c, double x);
+void setCorBordaCirculo(CIRCLE c, const char* novaCor);
+void setCorPreenchimentoCirculo(CIRCLE c, const char* novaCor);
 
-char* get_corB_cir(CIRCLE c);
-
-char* get_corP_cir(CIRCLE c);
-
-void set_x_cir(CIRCLE c, int x);
-
-void set_y_cir(CIRCLE c, int Y);
-
-void set_raio_cir(CIRCLE c, int r);
-
-void set_corB_cir(CIRCLE c, char* corB);
-
-void set_corP_cir(CIRCLE c, char* corP);
-
-double calcula_area_circulo(CIRCLE c);
-
-void exclui_circulo(CIRCLE c);
+double areaCirculo(CIRCLE c);
+CIRCLE clonaCirculo(CIRCLE c, int novoId);
+void destroiCirculo(CIRCLE c);
 
 #endif

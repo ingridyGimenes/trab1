@@ -34,17 +34,17 @@ int get_id_carregador(Carregador* c) {
 
 bool adiciona_forma_carregador(Carregador* c, void* forma) {
     if (c == NULL) return false;
-    return empilha(c->formas, forma);
+    return add_na_pilha(c->formas, forma);
 }
 
 void* remove_forma_carregador(Carregador* c) {
     if (c == NULL) return NULL;
-    return desempilha(c->formas);
+    return retira_da_pilha(c->formas);
 }
 
 void* topo_carregador(Carregador* c) {
     if (c == NULL) return NULL;
-    return topo(c->formas);
+    return primeiro_pilha(c->formas);
 }
 
 bool carregador_vazio(Carregador* c) {
@@ -59,6 +59,6 @@ int tamanho_carregador(Carregador* c) {
 
 void libera_carregador(Carregador* c) {
     if (c == NULL) return;
-    libera_pilha(c->formas);
+    esvazia_pilha(c->formas);
     free(c);
 }

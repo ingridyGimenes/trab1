@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "pilha.h"
 
 typedef struct NO{
@@ -31,21 +32,19 @@ void* cria_pilha(){
     return (void*)p;
 }
 
-pont_p add_na_pilha(void* pilha, void* valor){
+bool add_na_pilha(void* pilha, void* valor){
     pont_p p = (pont_p)pilha;
     pont_no temp = (pont_no)malloc(sizeof(no));
-
-     if(temp==NULL){
+    if(temp==NULL){
         printf("erro ao alocar novo no");
-        exit(1);
+        return false;
     }
 
     temp->dado = valor;
     temp->prox = p->comeco;
     p->comeco = temp;
     p->tam++;
-    
-    
+    return true;
 }
 
 void* retira_da_pilha(void* pilha){
@@ -100,7 +99,7 @@ void esvazia_pilha(void* pilha){
 
 void* primeiro_pilha(void* pilha){
     pont_p p = (pont_p)pilha;
-    if(p==NULL){
+    if(p->comeco == NULL){
          printf("elementos insuficientes");
         return NULL;
     }
@@ -110,7 +109,7 @@ void* primeiro_pilha(void* pilha){
 
 void* segundo_pilha(void* pilha){
     pont_p p = (pont_p)pilha;
-    if(p==NULL || p->comeco->prox == NULL){
+    if(p->comeco ==NULL || p->comeco->prox == NULL){
          printf("elementos insuficientes");
         return NULL;
     }
@@ -121,4 +120,12 @@ void* segundo_pilha(void* pilha){
 int tamanho_pilha(void* pilha){
     pont_p p = (pont_p)pilha;
     return p->tam;
+}
+
+bool pilha_vazia(void* pilha){
+    pont_p p = (pont_p)pilha;
+    if(p->comeco == NULL){
+        return true;
+    }
+    return false;
 }

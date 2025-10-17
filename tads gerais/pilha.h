@@ -5,7 +5,7 @@ typedef void *Pilha;
 
 void* cria_pilha();
 
-void add_na_pilha(void* pilha, void* valor);
+bool add_na_pilha(void* pilha, void* valor);
 
 void* retira_da_pilha(void* pilha);
 
@@ -19,5 +19,6 @@ void* segundo_pilha(void* pilha);
 
 int tamanho_pilha(void* pilha);
 
+bool pilha_vazia(void* pilha);
 
 #endif

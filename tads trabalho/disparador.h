@@ -1,8 +1,6 @@
 #ifndef DISPARADOR_H
 #define DISPARADOR_H
 
-
-
 #include <stdbool.h>
 #include "carregador.h"
 

@@ -1,51 +1,70 @@
 #ifndef DISPARADOR_H
 #define DISPARADOR_H
 
+
+
+#include <stdbool.h>
 #include "carregador.h"
 
-/**
- * Estrutura que representa o disparador.
- * Ele possui dois carregadores (esquerdo e direito)
- * e controla as ações de disparo e devolução de formas.
- */
+
 typedef struct disparador Disparador;
 
 /**
- * Cria um novo disparador com dois carregadores.
+ * Cria um novo disparador com um identificador.
  */
-Disparador* criaDisparador(Carregador* esquerdo, Carregador* direito);
+Disparador* cria_disparador(int id);
 
 /**
- * Dispara uma forma do carregador esquerdo (se houver).
- * Retorna o ponteiro da forma disparada (void*).
+ * Posiciona o disparador na coordenada (x, y).
  */
-void* disparaEsquerda(Disparador* d);
+void posiciona_disparador(Disparador* d, double x, double y);
 
 /**
- * Dispara uma forma do carregador direito (se houver).
- * Retorna o ponteiro da forma disparada (void*).
+ * Conecta dois carregadores ao disparador:
+ *  - cesq → carregador esquerdo
+ *  - cdir → carregador direito
  */
-void* disparaDireita(Disparador* d);
+void conecta_carregadores(Disparador* d, Carregador* cesq, Carregador* cdir);
 
 /**
- * Devolve uma forma para o carregador esquerdo.
+ * Pressiona o botão de shift (e = esquerdo, d = direito).
+ * 
+ * - Se já houver uma forma em posição de disparo, 
+ *   ela é devolvida para o topo do outro carregador.
+ * - Retira o topo do carregador correspondente e o coloca 
+ *   na posição de disparo.
+ * 
+ * Retorna: ponteiro para a forma que ficou em posição de disparo.
  */
-void devolveEsquerda(Disparador* d, void* forma);
+void* shift_disparador(Disparador* d, char lado);
 
 /**
- * Devolve uma forma para o carregador direito.
+ * Dispara a forma atualmente em posição de disparo.
+ * Move a forma para (x + dx, y + dy).
+ * 
+ * Retorna a forma disparada (para colocá-la na arena).
  */
-void devolveDireita(Disparador* d, void* forma);
+void* disparar(Disparador* d, double dx, double dy);
 
 /**
- * Imprime o estado atual dos carregadores.
+ * Retorna a coordenada X do disparador.
  */
-void imprimeEstadoDisparador(Disparador* d);
+double get_x_disparador(Disparador* d);
 
 /**
- * Libera completamente a memória do disparador.
- * (Não libera os carregadores, pois eles pertencem ao processador.)
+ * Retorna a coordenada Y do disparador.
  */
-void destroiDisparador(Disparador* d);
+double get_y_disparador(Disparador* d);
+
+/**
+ * Retorna o ID do disparador.
+ */
+int get_id_disparador(Disparador* d);
+
+/**
+ * Libera toda a memória associada ao disparador.
+ * (Não libera os carregadores nem as formas.)
+ */
+void libera_disparador(Disparador* d);
 
 #endif

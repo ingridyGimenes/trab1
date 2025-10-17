@@ -1,32 +1,52 @@
 #ifndef CARREGADOR_H
 #define CARREGADOR_H
+#include <stdbool.h>
+#include "pilha.h"
 
-// Tipo opaco
-typedef void* Carregador;
 
-// Cria um novo carregador com identificador id
-Carregador cria_carregador(int id);
+typedef struct carregador Carregador;
 
-// Adiciona uma forma ao carregador (usa a pilha interna)
-void adiciona_forma(Carregador c, void* forma);
+/**
+ * Cria um novo carregador vazio.
+ * Retorna: ponteiro para o carregador criado, ou NULL se falha.
+ */
+Carregador* cria_carregador(int id);
 
-// Remove a forma do topo (retorna ponteiro)
-void* retira_forma(Carregador c);
+/**
+ * Retorna o identificador do carregador.
+ */
+int get_id_carregador(Carregador* c);
 
-// Retorna a forma do topo (sem remover)
-void* topo_carregador(Carregador c);
+/**
+ * Adiciona uma forma (qualquer tipo) no carregador.
+ * Retorna: true se sucesso, false caso contrário.
+ */
+bool adiciona_forma_carregador(Carregador* c, void* forma);
 
-// Retorna o id do carregador
-int get_id_carregador(Carregador c);
+/**
+ * Remove e retorna a forma do topo do carregador.
+ * Retorna: ponteiro para a forma ou NULL se vazio.
+ */
+void* remove_forma_carregador(Carregador* c);
 
-// Retorna quantas formas há no carregador
-int qtd_formas_carregador(Carregador c);
+/**
+ * Retorna a forma do topo sem removê-la.
+ */
+void* topo_carregador(Carregador* c);
 
-// Mostra informações do carregador
-void imprime_carregador(Carregador c);
+/**
+ * Verifica se o carregador está vazio.
+ */
+bool carregador_vazio(Carregador* c);
 
-// Esvazia e libera memória
-void esvazia_carregador(Carregador c);
-void desaloca_carregador(Carregador c);
+/**
+ * Retorna o número de formas armazenadas.
+ */
+int tamanho_carregador(Carregador* c);
+
+/**
+ * Libera toda a memória do carregador (não libera as formas).
+ */
+void libera_carregador(Carregador* c);
 
 #endif

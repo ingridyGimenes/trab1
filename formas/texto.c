@@ -192,3 +192,7 @@ void setSize(Estilo e, char* sz){
      estilo* E = ((estilo*)e);
     strcpy(E->size, sz);
 }
+
+double calcula_area_txt(TEXTO t){
+    
+}

@@ -3,6 +3,7 @@
 
 typedef void *TEXTO;
 typedef void *Estilo;
+typedef texto Texto;
 
 
 Estilo cria_estilo(char* Family, char* Weight, char* Size );

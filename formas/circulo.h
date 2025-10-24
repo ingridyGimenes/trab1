@@ -2,6 +2,7 @@
 #define CIRCULO_H
 
 typedef void* CIRCLE;
+typedef circulo Circulo;
 
 // Funções internas chamadas por formas.c
 CIRCLE criaCirculoInterno(int id, double x, double y, double r, const char* corb, const char* corp);

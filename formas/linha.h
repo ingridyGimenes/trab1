@@ -2,6 +2,7 @@
 #define  LINHA_H
 
 typedef void *LINHA;
+typedef linha Linha;
 
 LINHA cria_linha(int i, double x_1, double x_2, double y_1, double y_2, char* corL);
 

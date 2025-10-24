@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 #include "processador.h"
-#include "fila.h"
-
+#include "/workspaces/trab1/tads_gerais/fila.h"
+#include "/workspaces/trab1/formas/circulo.h"
+#include "/workspaces/trab1/formas/retangulo.h"
+#include "/workspaces/trab1/formas/linha.h"
+#include "/workspaces/trab1/formas/texto.h"
 
 
 struct processador {
@@ -33,10 +37,23 @@ Processador* cria_processador(void) {
  * em um projeto completo, haveria função polimórfica para cada tipo.)
  */
 static bool sobrepoe_formas(void* f1, void* f2, char tipo1, char tipo2) {
-    if (tipo1 == 'c' && tipo2 == 'c')
+    if (tipo1 == 'c' && tipo2 == 'c'){
         return sobrepoe_circulo((Circulo*)f1, (Circulo*)f2);
+    }
 
-    // outros tipos (retângulo, linha, texto) seriam verificados aqui
+      if (tipo1 == 'r' && tipo2 == 'r'){
+        return sobrepoe_circulo((Retangulo*)f1, (Retangulo*)f2);
+    }
+
+    if (tipo1 == 'l' && tipo2 == 'l'){
+        return sobrepoe_circulo((Linha*)f1, (Linha*)f2);
+    }
+
+    if (tipo1 == 'l' && tipo2 == 'l'){
+        return sobrepoe_circulo((Linha*)f1, (Linha*)f2);
+    }
+
+    
     return false;
 }
 
@@ -44,9 +61,18 @@ static bool sobrepoe_formas(void* f1, void* f2, char tipo1, char tipo2) {
  * Calcula área de uma forma genérica.
  */
 static double area_forma(void* f, char tipo) {
-    if (tipo == 'c')
+    if (tipo == 'c'){
         return area_circulo((Circulo*)f);
-    // outros tipos também poderiam ser incluídos aqui
+    }
+
+     if (tipo == 'r'){
+        return calcula_area_ret((Retangulo*)f);
+    }
+
+     if (tipo == 't'){
+        return calcula_area_txt((Texto*)f);
+    }
+    
     return 0.0;
 }
 
@@ -54,8 +80,16 @@ static double area_forma(void* f, char tipo) {
  * Cria clone de uma forma genérica (apenas círculo por enquanto).
  */
 static void* clona_forma(void* f, char tipo, int novo_id) {
-    if (tipo == 'c')
+    if (tipo == 'c'){
         return clona_circulo((Circulo*)f, novo_id);
+    }
+      if (tipo == 'r'){
+        return clonaRetangulo((Retangulo*)f, novo_id);
+    }
+     if (tipo == 'l'){
+        return clonaRetangulo((Retangulo*)f, novo_id);
+    }
+    
     return NULL;
 }
 

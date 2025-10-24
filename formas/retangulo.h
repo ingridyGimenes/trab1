@@ -2,6 +2,8 @@
 #define retangulo_h
 
 typedef void* RETANGULO;
+typedef retangulo Retangulo;
+
 
 void* cria_retangulo(int i, double x, double y, double w, double h, char* cor_b, char* cor_p);
 
@@ -37,6 +39,6 @@ void set_corP_ret(RETANGULO r, char* corP);
 
 void exclui_retangulo(RETANGULO r);
 
-RETANGULO clonaRetangulo(RETANGULO r, int novoId);
+void* clonaRetangulo(RETANGULO r, int novoId);
 
 #endif

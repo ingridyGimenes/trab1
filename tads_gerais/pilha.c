@@ -78,7 +78,7 @@ void imprime_pilha(void* pilha){
     printf("\n");
 }
 
-void esvazia_pilha(void* pilha){
+void* esvazia_pilha(void* pilha){
     pont_p p = (pont_p)pilha;
     pont_no aux = p->comeco;
 

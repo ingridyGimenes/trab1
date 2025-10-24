@@ -1,10 +1,10 @@
 #ifndef PROCESSADOR_H
 #define PROCESSADOR_H
-#include "fila.h"
-#include "circulo.h"
-#include "retangulo.h"
-#include "linha.h"
-#include "texto.h"
+#include "/workspaces/trab1/tads_gerais/fila.h"
+#include "/workspaces/trab1/formas/circulo.h"
+#include "/workspaces/trab1/formas/retangulo.h"
+#include "/workspaces/trab1/formas/linha.h"
+#include "/workspaces/trab1/formas/texto.h"
 
 /// Estrutura opaca do Processador
 typedef struct processador Processador;

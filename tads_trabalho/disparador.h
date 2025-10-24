@@ -2,7 +2,7 @@
 #define DISPARADOR_H
 
 #include <stdbool.h>
-#include "carregador.h"
+#include "tads_trabalho/carregador.h"
 
 
 typedef struct disparador Disparador;

@@ -96,3 +96,10 @@ void set_cor_linha(LINHA L, char* corL){
      linha* l = ((linha*)L);
      strcpy(l->cor, corL);
 }
+
+linha* clona_linha(LINHA L, int novo_id){
+     linha* orig = (linha*)r;
+    linha* novo = (linha*)malloc(sizeof(linha));
+
+    
+}

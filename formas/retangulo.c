@@ -4,7 +4,7 @@
 #include <string.h>
 #include "retangulo.h"
 
-typedef struct{
+typedef struct {
     int i; //id
     double x; //cordenada x
     double y; //cordenada y
@@ -126,7 +126,7 @@ void exclui_retangulo(RETANGULO r){
     free(ret);
 }
 
-RETANGULO clonaRetangulo(RETANGULO r, int novoId) {
+retangulo* clonaRetangulo(RETANGULO r, int novoId){
    retangulo* orig = (retangulo*)r;
     retangulo* novo = (retangulo*)malloc(sizeof(retangulo));
 
@@ -136,7 +136,7 @@ RETANGULO clonaRetangulo(RETANGULO r, int novoId) {
     novo->w = orig->w;
     novo->h = orig->h;
 
-    // Troca as cores da borda e do preenchimento
+    
     novo->cor_b = strdup(orig->cor_p);
     novo->cor_p = strdup(orig->cor_b);
 

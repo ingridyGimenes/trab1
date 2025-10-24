@@ -77,18 +77,22 @@ void* shift_disparador(Disparador* d, char lado) {
     return d->forma_em_disparo;
 }
 
-void* disparar(Disparador* d, double dx, double dy) {
-    if (d == NULL || d->forma_em_disparo == NULL)
+void* disparar(Disparador* d, double dx, double dy, char modo) {
+    if (!d || !d->forma_em_disparo)
         return NULL;
 
-    // Aqui a forma seria deslocada (x+dx, y+dy)
-    // Como as formas são genéricas (void*), o deslocamento é tratado no processador.
-    void* forma_disparada = d->forma_em_disparo;
-
-    // após o disparo, não há mais forma em posição de disparo
+    void* forma = d->forma_em_disparo;
     d->forma_em_disparo = NULL;
 
-    return forma_disparada;
+    // desloca a forma (caso o módulo de forma trate posição)
+    // mover_forma(forma, d->x + dx, d->y + dy);
+
+    if (modo == 'v') {
+        // registrar visualmente (SVG ou log)
+        // svg_registra_disparo(d, forma, dx, dy);
+    }
+
+    return forma;
 }
 
 double get_x_disparador(Disparador* d) {

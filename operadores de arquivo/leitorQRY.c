@@ -2,6 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "leitorQRY.h"
+#include "/workspaces/trab1/tads_gerais/fila.h"
+#include "/workspaces/trab1/formas/circulo.h"
+#include "/workspaces/trab1/formas/retangulo.h"
+#include "/workspaces/trab1/formas/linha.h"
+#include "/workspaces/trab1/formas/texto.h"
+#include "/workspaces/trab1/tads_trabalho/disparador.h"
+#include "/workspaces/trab1/tads_trabalho/carregador.h"
+#include "/workspaces/trab1/tads_trabalho/processador.h"
 
 // Função auxiliar para remover o \n do final de strings
 static void trim(char *s) {
@@ -33,7 +41,9 @@ void processarQry(const char *nomeArquivo, Fila *chao) {
             int id;
             double x, y;
             fscanf(arquivo, "%d %lf %lf", &id, &x, &y);
-            disparadores[id] = cria_disparador(id, x, y);
+            disparadores[id] = cria_disparador(id);
+            posiciona_disparador(id, x, y);
+
             printf("[pd] Disparador %d posicionado em (%.2f, %.2f)\n", id, x, y);
         }
 
@@ -46,9 +56,9 @@ void processarQry(const char *nomeArquivo, Fila *chao) {
             carregadores[id] = cria_carregador(id);
 
             for (int i = 0; i < n; i++) {
-                void *forma = desenfileira(chao);
+                void *forma = remove_da_fila(chao);
                 if (forma != NULL)
-                    push_forma(carregadores[id], forma);
+                    add_na_pilha(carregadores[id], forma);
             }
 
             printf("[lc] Carregador %d carregado com %d formas\n", id, n);
@@ -72,7 +82,8 @@ void processarQry(const char *nomeArquivo, Fila *chao) {
             char lado;
             fscanf(arquivo, "%d %c %d", &idd, &lado, &n);
             for (int i = 0; i < n; i++) {
-                shift(disparadores[idd], lado);
+               shift_disparador(disparadores[idd], lado);
+                
             }
             printf("[shft] Disparador %d shift %c x%d\n", idd, lado, n);
         }
@@ -90,7 +101,7 @@ void processarQry(const char *nomeArquivo, Fila *chao) {
             void *forma = disparar(disparadores[idd], dx, dy, modo[0]);
             if (forma != NULL) {
                 totalDisparos++;
-                enfileira(chao, forma);
+                add_na_fila(chao, forma);
             }
 
             printf("[dsp] Disparador %d disparou forma em (%.2f, %.2f)\n", idd, dx, dy);
@@ -107,11 +118,11 @@ void processarQry(const char *nomeArquivo, Fila *chao) {
             fscanf(arquivo, "%d %c %lf %lf %lf %lf", &idd, &lado, &dx, &dy, &ix, &iy);
 
             int i = 0;
-            while (carregador_tem_formas(disparadores[idd], lado)) {
-                shift(disparadores[idd], lado);
+            while (carregador_vazio(disparadores[idd]) == false) {
+                shift_disparador(disparadores[idd], lado);
                 void *forma = disparar(disparadores[idd], dx + i * ix, dy + i * iy, 'i');
                 if (forma != NULL) {
-                    enfileira(chao, forma);
+                    add_na_fila(chao, forma);
                     totalDisparos++;
                 }
                 i++;

@@ -48,8 +48,10 @@ void* topo_carregador(Carregador* c) {
 }
 
 bool carregador_vazio(Carregador* c) {
-    if (c == NULL) return true;
-    return pilha_vazia(c->formas);
+    if (c == NULL) 
+    return true;
+
+    return false;
 }
 
 int tamanho_carregador(Carregador* c) {

@@ -76,9 +76,7 @@ static double area_forma(void* f, char tipo) {
     return 0.0;
 }
 
-/**
- * Cria clone de uma forma genérica (apenas círculo por enquanto).
- */
+
 static void* clona_forma(void* f, char tipo, int novo_id) {
     if (tipo == 'c'){
         return clona_circulo((Circulo*)f, novo_id);
@@ -94,7 +92,7 @@ static void* clona_forma(void* f, char tipo, int novo_id) {
 }
 
 /**
- * Processa a fila da arena conforme as regras do enunciado.
+ * Processa a fila da arena
  */
 double processa_formas(Processador* p, Fila* arena, Fila* chao) {
     if (!p || !arena || fila_vazia(arena)) return 0.0;

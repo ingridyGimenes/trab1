@@ -42,7 +42,7 @@ void* shift_disparador(Disparador* d, char lado);
  * 
  * Retorna a forma disparada (para colocá-la na arena).
  */
-void* disparar(Disparador* d, double dx, double dy);
+void* disparar(Disparador* d, double dx, double dy, char modo);
 
 /**
  * Retorna a coordenada X do disparador.

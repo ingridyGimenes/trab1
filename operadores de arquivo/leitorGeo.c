@@ -7,7 +7,9 @@
 // Função auxiliar: lê o próximo comando e cria o tipo correto de forma
 // --------------------------------------------------------------
 void carregarGeo(const char *nomeArquivo, Fila *chao) {
+    //cria um leitor 
     FILE *arquivo = fopen(nomeArquivo, "r");
+
     if (arquivo == NULL) {
         fprintf(stderr, "Erro ao abrir o arquivo %s\n", nomeArquivo);
         exit(1);
@@ -29,7 +31,7 @@ void carregarGeo(const char *nomeArquivo, Fila *chao) {
             fscanf(arquivo, "%d %lf %lf %lf %s %s", &id, &x, &y, &r, corb, corp);
 
             Circulo *c = cria_circulo(id, x, y, r, corb, corp);
-            enfileira(chao, c);
+            add_na_fila(chao, c);
         }
 
         // ----------------------------------------------------------
@@ -44,7 +46,8 @@ void carregarGeo(const char *nomeArquivo, Fila *chao) {
             fscanf(arquivo, "%d %lf %lf %lf %lf %s %s", &id, &x, &y, &w, &h, corb, corp);
 
             Retangulo *r = cria_retangulo(id, x, y, w, h, corb, corp);
-            enfileira(chao, r);
+            add_na_fila(chao, r);
+
         }
 
         // ----------------------------------------------------------
@@ -59,7 +62,7 @@ void carregarGeo(const char *nomeArquivo, Fila *chao) {
             fscanf(arquivo, "%d %lf %lf %lf %lf %s", &id, &x1, &y1, &x2, &y2, cor);
 
             Linha *l = cria_linha(id, x1, y1, x2, y2, cor);
-            enfileira(chao, l);
+            add_na_fila(chao, l);
         }
 
         // ----------------------------------------------------------
@@ -79,7 +82,7 @@ void carregarGeo(const char *nomeArquivo, Fila *chao) {
             texto[strcspn(texto, "\n")] = '\0';
 
             Texto *t = cria_texto(id, x, y, corb, corp, ancora, texto);
-            enfileira(chao, t);
+            add_na_fila(chao, t);
         }
 
         // ----------------------------------------------------------

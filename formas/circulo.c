@@ -104,12 +104,23 @@ CIRCLE clonaCirculo(CIRCLE c, int novoId) {
     novo->x = orig->x;
     novo->y = orig->y;
     novo->raio = orig->raio;
-
-    // Troca as cores da borda e do preenchimento
-    novo->cor_b = strdup(orig->cor_p);
-    novo->cor_p = strdup(orig->cor_b);
+    novo->cor_b = strdup(orig->cor_b);
+    novo->cor_p = strdup(orig->cor_p);
 
     return (CIRCLE)novo;
+}
+
+void inverteCores(CIRCLE c){
+    circulo* cir = (circulo*)c;
+    circulo* aux = (circulo*)malloc(sizeof(circulo));
+    if(aux== NULL){
+        printf("erro ao trocar cores");
+        exit(1);
+    }
+    aux->cor_b = cir->cor_b;
+    cir->cor_b = cir->cor_p;
+    cir->cor_p =  aux->cor_b;
+    free(aux);
 }
 
 

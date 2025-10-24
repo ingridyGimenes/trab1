@@ -98,8 +98,14 @@ void set_cor_linha(LINHA L, char* corL){
 }
 
 linha* clona_linha(LINHA L, int novo_id){
-     linha* orig = (linha*)r;
+     linha* orig = (linha*)L;
     linha* novo = (linha*)malloc(sizeof(linha));
 
+    novo->id = novo_id;
+    novo->x1 = orig->x1;
+    novo->x2 = orig->x2;
+    novo->y1 = orig->y1;
+    novo->y1 = orig->y2;
+    novo->cor = strdup(orig->cor);
     
 }

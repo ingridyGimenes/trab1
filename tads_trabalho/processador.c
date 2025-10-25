@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "processador.h"
-#include "fila.h"
+#include "/workspaces/trab1/tads_gerais/fila.h"
 #include "geometria.h"   // dispatcher genérico de interseção & áreas (ver notas)
 #include "/workspaces/trab1/formas/forma.h"
 /* --------------------------------------------------------------------------

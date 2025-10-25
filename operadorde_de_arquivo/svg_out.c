@@ -3,12 +3,13 @@
 #include <math.h>
 
 #include "svg_out.h"
-#include "forma.h"
-#include "fila.h"
-#include "retangulo.h"
-#include "circulo.h"
-#include "linha.h"
-#include "texto.h"
+
+#include "/workspaces/trab1/tads_gerais/fila.h"       // add_na_fila
+#include "/workspaces/trab1/formas/forma.h"   
+#include "/workspaces/trab1/formas/circulo.h"
+#include "/workspaces/trab1/formas/retangulo.h"
+#include "/workspaces/trab1/formas/linha.h"
+#include "/workspaces/trab1/formas/texto.h"
 
 static void svg_begin(FILE* out, double w, double h){
     fprintf(out, "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%.2f\" height=\"%.2f\" viewBox=\"0 0 %.2f %.2f\">\n",

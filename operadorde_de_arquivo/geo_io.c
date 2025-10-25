@@ -4,12 +4,12 @@
 #include <ctype.h>
 
 #include "geo_io.h"
-#include "forma.h"      // FORMA, cria_forma, tipo_forma, ...
-#include "fila.h"       // add_na_fila
-#include "retangulo.h"  // cria_retangulo, getters...
-#include "circulo.h"    // cria_circulo
-#include "linha.h"      // cria_linha
-#include "texto.h"      // cria_texto
+#include "/workspaces/trab1/tads_gerais/fila.h"       // add_na_fila
+#include "/workspaces/trab1/formas/forma.h"   
+#include "/workspaces/trab1/formas/circulo.h"
+#include "/workspaces/trab1/formas/retangulo.h"
+#include "/workspaces/trab1/formas/linha.h"
+#include "/workspaces/trab1/formas/texto.h"
 
 typedef struct {
     void* fila_chao; // sua Fila*

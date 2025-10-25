@@ -4,6 +4,11 @@
         "retangulo.h": "c",
         "linha.h": "c",
         "texto.h": "c",
-        "carregador.h": "c"
+        "carregador.h": "c",
+        "fila.h": "c",
+        "processador.h": "c",
+        "geometria.h": "c",
+        "forma.h": "c",
+        "pilha.h": "c"
     }
 }

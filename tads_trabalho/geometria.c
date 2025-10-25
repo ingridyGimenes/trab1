@@ -4,7 +4,7 @@
 #include <math.h>
 
 #include "geometria.h"  
-#include "/workspaces/trab1/formas/forma.h"   // <<< ver cabeçalho sugerido abaixo
+#include "/workspaces/trab1/formas/forma.h"   
 #include "/workspaces/trab1/formas/circulo.h"
 #include "/workspaces/trab1/formas/retangulo.h"
 #include "/workspaces/trab1/formas/linha.h"

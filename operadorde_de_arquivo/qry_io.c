@@ -5,11 +5,11 @@
 #include <stdbool.h>
 
 #include "qry_io.h"
-#include "fila.h"
-#include "pilha.h"
-#include "forma.h"      // FORMA, cria_forma, tipo_forma, objeto_forma
-#include "geometria.h"  // area_forma, etc. (se precisar)
-#include "processador.h"
+#include "/workspaces/trab1/tads_gerais/fila.h"
+#include "/workspaces/trab1/tads_gerais/pilha.h"
+#include "/workspaces/trab1/formas/forma.h"      
+#include "/workspaces/trab1/tads_trabalho/geometria.h"  
+#include "/workspaces/trab1/tads_trabalho/processador.h"
 
 // -----------------------------------------------------------------------------
 // Estrutura interna (opaca no .h)

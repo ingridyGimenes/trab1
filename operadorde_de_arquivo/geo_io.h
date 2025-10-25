@@ -1,16 +1,24 @@
-#pragma once
-#include <stdbool.h>
+#ifndef GEO_IO_H
+#define GEO_IO_H
 
-// O loader é opaco (nenhuma struct exposta)
-typedef void* GEO_LOADER;
+#include <stdio.h>
+#include "../tads_gerais/fila.h"
+#include "../formas/forma.h"
 
-// fila do chão chega de fora (sua Fila*)
-// formas serão carregadas nela como FORMA (wrapper do geometria/forma.h)
-GEO_LOADER geo_loader_create(void* fila_chao);
+/**
+ * Lê um arquivo .geo já ABERTO e enfileira as formas criadas no "chão"
+ * (na ordem em que aparecem no arquivo).
+ *
+ * Suporta comandos:
+ *  - c i x y r corb corp
+ *  - r i x y w h corb corp
+ *  - l i x1 y1 x2 y2 cor
+ *  - t i x y corb corp a texto... (texto vai até o fim da linha)
+ *  - ts fFamily fWeight fSize (afeta textos subsequentes)
+ *
+ * Retorna: número de formas carregadas.
+ * Em caso de erro de parsing, imprime no stderr e continua onde possível.
+ */
+int geo_ler(FILE *geo, FILA fila_chao);
 
-// Lê e insere as formas do .geo no "chão".
-// Retorna true se ok, false se falhar (erro de arquivo ou sintaxe).
-bool geo_loader_load_file(GEO_LOADER gl, const char* filepath);
-
-// Desaloca o loader (não mexe na fila do chão).
-void geo_loader_destroy(GEO_LOADER gl);
+#endif /* GEO_IO_H */

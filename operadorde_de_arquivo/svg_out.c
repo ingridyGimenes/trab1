@@ -1,85 +1,273 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-
 #include "svg_out.h"
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <stdarg.h>
 
-#include "/workspaces/trab1/tads_gerais/fila.h"       // add_na_fila
-#include "/workspaces/trab1/formas/forma.h"   
-#include "/workspaces/trab1/formas/circulo.h"
-#include "/workspaces/trab1/formas/retangulo.h"
-#include "/workspaces/trab1/formas/linha.h"
-#include "/workspaces/trab1/formas/texto.h"
+#include "../tads_gerais/fila.h"
+#include "../formas/forma.h"
+#include "../formas/circulo.h"
+#include "../formas/retangulo.h"
+#include "../formas/linha.h"
+#include "../formas/texto.h"
 
-static void svg_begin(FILE* out, double w, double h){
-    fprintf(out, "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%.2f\" height=\"%.2f\" viewBox=\"0 0 %.2f %.2f\">\n",
-            w, h, w, h);
-    fprintf(out, "  <rect x=\"0\" y=\"0\" width=\"100%%\" height=\"100%%\" fill=\"white\"/>\n");
+
+/* ===========================================================
+   ADAPTAÇÃO DE APIS (caso nomes difiram nos seus TADs)
+   -----------------------------------------------------------
+   Se seus getters tiverem nomes diferentes, ajuste APENAS
+   esta seção.
+   =========================================================== */
+
+/* ---- CÍRCULO ----
+   Esperado:
+     int    getIdCirculo(CIRCULO);
+     double getXCirculo(CIRCULO), getYCirculo(CIRCULO);
+     double getRaioCirculo(CIRCULO);
+     const char* getCorbCirculo(CIRCULO);
+     const char* getCorpCirculo(CIRCULO);
+*/
+
+/* ---- RETÂNGULO ----
+   Esperado:
+     int    getIdRetangulo(RETANGULO);
+     double getXRetangulo(RETANGULO), getYRetangulo(RETANGULO);
+     double getLarguraRetangulo(RETANGULO), getAlturaRetangulo(RETANGULO);
+     const char* getCorbRetangulo(RETANGULO);
+     const char* getCorpRetangulo(RETANGULO);
+*/
+
+/* ---- LINHA ----
+   Esperado:
+     int    getIdLinha(LINHA);
+     double getX1Linha(LINHA), getY1Linha(LINHA);
+     double getX2Linha(LINHA), getY2Linha(LINHA);
+     const char* getCorLinha(LINHA);
+*/
+
+/* ---- TEXTO ----
+   Esperado (mínimo):
+     int    getIdTexto(TEXTO);
+     double getXTexto(TEXTO), getYTexto(TEXTO);
+     char   getAncoraTexto(TEXTO);     // 'i','m','f'
+     const char* getCorbTexto(TEXTO);
+     const char* getCorpTexto(TEXTO);
+     const char* getConteudoTexto(TEXTO);
+
+   Se seu TEXTO tem estilo (family/weight/size), ative -DTEXTO_TEM_ESTILO e forneça:
+     const char* getFamilyTexto(TEXTO);
+     const char* getWeightTexto(TEXTO); // "n","b","b+","l"
+     const char* getSizeTexto(TEXTO);   // "12", "14", etc
+*/
+
+/* ===========================================================
+   UTIL
+   =========================================================== */
+
+static void svg_printf(FILE* f, const char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(f, fmt, ap);
+    va_end(ap);
 }
 
-static void svg_end(FILE* out){
-    fprintf(out, "</svg>\n");
-}
-
-static void draw_ret(FILE* out, RETANGULO r){
-    double x = get_x_ret(r), y = get_y_ret(r), w = get_w_ret(r), h = get_h_ret(r);
-    const char* cb = get_corb_ret(r);
-    const char* cp = get_corp_ret(r);
-    fprintf(out, "  <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\" stroke=\"%s\" fill=\"%s\"/>\n",
-            x, y, w, h, cb?cb:"black", cp?cp:"none");
-}
-
-static void draw_circ(FILE* out, CIRCLE c){
-    double x = get_x_circ(c), y = get_y_circ(c), r = get_r_circ(c);
-    const char* cb = get_corb_circ(c);
-    const char* cp = get_corp_circ(c);
-    fprintf(out, "  <circle cx=\"%.2f\" cy=\"%.2f\" r=\"%.2f\" stroke=\"%s\" fill=\"%s\"/>\n",
-            x, y, r, cb?cb:"black", cp?cp:"none");
-}
-
-static void draw_lin(FILE* out, LINHA l){
-    double x1 = get_x1_lin(l), y1 = get_y1_lin(l), x2 = get_x2_lin(l), y2 = get_y2_lin(l);
-    const char* c = get_cor_lin(l);
-    fprintf(out, "  <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\" stroke=\"%s\"/>\n",
-            x1, y1, x2, y2, c?c:"black");
-}
-
-static void draw_txt(FILE* out, TEXTO t){
-    double x = get_x_txt(t), y = get_y_txt(t);
-    const char* cb = get_corB_txt(t);
-    const char* cp = get_corP_txt(t);
-    const char* content = get_txto_txt(t);
-    char anc = get_ancora_txt(t); // 'i','m','f'
-    const char* anchor = (anc=='i'?"start":(anc=='f'?"end":"middle"));
-    // estilo básico; se quiser, leia family/size do seu TAD
-    fprintf(out, "  <text x=\"%.2f\" y=\"%.2f\" text-anchor=\"%s\" font-family=\"sans-serif\" font-size=\"12\" "
-                 "stroke=\"%s\" fill=\"%s\">%s</text>\n",
-            x, y, anchor, cb?cb:"black", cp?cp:"black", content?content:"");
-}
-
-int svg_dump_fila(const char* path_svg, void* fila_formas, double width, double height){
-    if(!path_svg || !fila_formas) return -1;
-    FILE* out = fopen(path_svg, "w");
-    if(!out) return -1;
-
-    svg_begin(out, width, height);
-
-    // percorre a fila sem destruí-la: vamos remover cada item e recolocar no fim
-    int n = tamanho_fila(fila_formas);
-    for(int i=0;i<n;i++){
-        FORMA F = (FORMA) remove_da_fila(fila_formas);
-        char t = tipo_forma(F);
-        void* obj = objeto_forma(F);
-
-        if      (t=='r') draw_ret(out, (RETANGULO)obj);
-        else if (t=='c') draw_circ(out, (CIRCLE)obj);
-        else if (t=='l') draw_lin(out, (LINHA)obj);
-        else if (t=='t') draw_txt(out, (TEXTO)obj);
-
-        add_na_fila(fila_formas, F); // volta pra fila
+static void xml_escape_into(const char* s, char* out, size_t outcap) {
+    /* Escapa &, <, > e " para segurança básica no SVG. */
+    size_t j = 0;
+    for (size_t i = 0; s && s[i] && j + 6 < outcap; ++i) {
+        char c = s[i];
+        if (c == '&')      j += snprintf(out + j, outcap - j, "&amp;");
+        else if (c == '<') j += snprintf(out + j, outcap - j, "&lt;");
+        else if (c == '>') j += snprintf(out + j, outcap - j, "&gt;");
+        else if (c == '"') j += snprintf(out + j, outcap - j, "&quot;");
+        else out[j++] = c;
     }
+    if (j < outcap) out[j] = '\0';
+}
 
-    svg_end(out);
-    fclose(out);
-    return 0;
+/* Converte peso "n|b|b+|l" em SVG font-weight numérico aproximado. */
+static const char* weight_to_svg(const char* w) {
+    if (!w) return "400";
+    if (strcmp(w,"b")==0)  return "700";
+    if (strcmp(w,"b+")==0) return "800";
+    if (strcmp(w,"l")==0)  return "300";
+    return "400"; /* n */
+}
+
+/* Converte family "sans|serif|cursive" para CSS genérico. */
+static const char* family_to_svg(const char* fam) {
+    if (!fam) return "sans-serif";
+    if (strcmp(fam,"sans")==0)   return "sans-serif";
+    if (strcmp(fam,"serif")==0)  return "serif";
+    if (strcmp(fam,"cursive")==0)return "cursive";
+    return "sans-serif";
+}
+
+/* text-anchor a partir de âncora 'i'|'m'|'f' */
+static const char* anchor_to_text_anchor(char a) {
+    if (a == 'm') return "middle";
+    if (a == 'f') return "end";
+    return "start"; /* 'i' */
+}
+
+/* ===========================================================
+   DESENHO POR TIPO
+   =========================================================== */
+
+static void draw_circulo(FILE* svg, CIRCULO c) {
+    double x = getXCirculo(c);
+    double y = getYCirculo(c);
+    double r = getRaioCirculo(c);
+    const char* corb = getCorbCirculo(c);
+    const char* corp = getCorpCirculo(c);
+    svg_printf(svg,
+        "<circle cx=\"%.3f\" cy=\"%.3f\" r=\"%.3f\" stroke=\"%s\" fill=\"%s\" />\n",
+        x, y, r, corb?corb:"black", corp?corp:"none");
+}
+
+static void draw_retangulo(FILE* svg, RETANGULO r) {
+    double x = getXRetangulo(r);
+    double y = getYRetangulo(r);
+    double w = getLarguraRetangulo(r);
+    double h = getAlturaRetangulo(r);
+    const char* corb = getCorbRetangulo(r);
+    const char* corp = getCorpRetangulo(r);
+    svg_printf(svg,
+        "<rect x=\"%.3f\" y=\"%.3f\" width=\"%.3f\" height=\"%.3f\" stroke=\"%s\" fill=\"%s\" />\n",
+        x, y, w, h, corb?corb:"black", corp?corp:"none");
+}
+
+static void draw_linha(FILE* svg, LINHA l) {
+    double x1 = getX1Linha(l), y1 = getY1Linha(l);
+    double x2 = getX2Linha(l), y2 = getY2Linha(l);
+    const char* cor = getCorLinha(l);
+    /* largura “2.0” é compatível com a convenção de área (2 * comprimento) */
+    svg_printf(svg,
+        "<line x1=\"%.3f\" y1=\"%.3f\" x2=\"%.3f\" y2=\"%.3f\" stroke=\"%s\" stroke-width=\"2\" />\n",
+        x1, y1, x2, y2, cor?cor:"black");
+}
+
+static void draw_texto(FILE* svg, TEXTO t) {
+    double x = getXTexto(t);
+    double y = getYTexto(t);
+    char a = getAncoraTexto(t);
+    const char* corb = getCorbTexto(t);
+    const char* corp = getCorpTexto(t);
+    const char* conteudo = getConteudoTexto(t);
+
+    char esc[4096];
+    xml_escape_into(conteudo ? conteudo : "", esc, sizeof esc);
+
+#ifdef TEXTO_TEM_ESTILO
+    const char* fam = family_to_svg(getFamilyTexto(t));
+    const char* w   = weight_to_svg(getWeightTexto(t));
+    const char* sz  = getSizeTexto(t) ? getSizeTexto(t) : "12";
+    svg_printf(svg,
+        "<text x=\"%.3f\" y=\"%.3f\" text-anchor=\"%s\" stroke=\"%s\" fill=\"%s\" "
+        "font-family=\"%s\" font-weight=\"%s\" font-size=\"%s\">%s</text>\n",
+        x, y, anchor_to_text_anchor(a), corb?corb:"black", corp?corp:"black",
+        fam, w, sz, esc);
+#else
+    svg_printf(svg,
+        "<text x=\"%.3f\" y=\"%.3f\" text-anchor=\"%s\" stroke=\"%s\" fill=\"%s\">%s</text>\n",
+        x, y, anchor_to_text_anchor(a), corb?corb:"black", corp?corp:"black", esc);
+#endif
+}
+
+/* ===========================================================
+   DISPATCHER
+   =========================================================== */
+
+static void draw_forma(FILE* svg, FORMA f) {
+    if (!f) return;
+    char t = tipoForma(f);
+    void* obj = objetoForma(f);
+    switch (t) {
+        case 'c': draw_circulo(svg, (CIRCULO)obj);   break;
+        case 'r': draw_retangulo(svg, (RETANGULO)obj); break;
+        case 'l': draw_linha(svg, (LINHA)obj);       break;
+        case 't': draw_texto(svg, (TEXTO)obj);       break;
+        default:
+            /* tipo desconhecido: ignore */
+            break;
+    }
+}
+
+/* ===========================================================
+   API PÚBLICA
+   =========================================================== */
+
+void svg_begin(FILE* svg, double width, double height) {
+    if (!svg) return;
+    if (width <= 0)  width  = 1000;
+    if (height <= 0) height = 1000;
+
+    svg_printf(svg,
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" "
+        "width=\"%.0f\" height=\"%.0f\" viewBox=\"0 0 %.0f %.0f\">\n",
+        width, height, width, height);
+
+    /* fundo opcional branco translúcido para facilitar visualização */
+    svg_printf(svg,
+        "  <rect x=\"0\" y=\"0\" width=\"100%%\" height=\"100%%\" fill=\"white\" fill-opacity=\"0.95\"/>\n");
+}
+
+void svg_end(FILE* svg) {
+    if (!svg) return;
+    svg_printf(svg, "</svg>\n");
+}
+
+/* percorre a fila SEM perder ordem */
+void svg_draw_chao(FILE* svg, FILA chao) {
+    if (!svg || !chao) return;
+
+    int n = tamanho_fila(chao); /* se seu TAD não tiver, faça um laço até “dar a volta” */
+    if (n <= 0) return;
+
+    /* Safe loop: remove e recoloca */
+    for (int i = 0; i < n; ++i) {
+        FORMA f = remove_da_fila(chao);
+        draw_forma(svg, f);
+        add_na_fila(chao, f);
+    }
+}
+
+/* Asterisco vermelho simples (X + +) centrado em (x,y) */
+void svg_mark_asterisk(FILE* svg, double x, double y, double size) {
+    if (!svg) return;
+    if (size <= 0) size = 6.0;
+    double s = size;
+
+    svg_printf(svg,
+      "<g stroke=\"red\" stroke-width=\"1.5\">\n"
+      "  <line x1=\"%.3f\" y1=\"%.3f\" x2=\"%.3f\" y2=\"%.3f\" />\n"
+      "  <line x1=\"%.3f\" y1=\"%.3f\" x2=\"%.3f\" y2=\"%.3f\" />\n"
+      "  <line x1=\"%.3f\" y1=\"%.3f\" x2=\"%.3f\" y2=\"%.3f\" />\n"
+      "  <line x1=\"%.3f\" y1=\"%.3f\" x2=\"%.3f\" y2=\"%.3f\" />\n"
+      "</g>\n",
+      x-s, y-s, x+s, y+s,
+      x-s, y+s, x+s, y-s,
+      x, y-s, x, y+s,
+      x-s, y, x+s, y
+    );
+}
+
+/* Caixa/medida de disparo (tracejada) + rótulo opcional. */
+void svg_mark_shot_box(FILE* svg, double x, double y, double w, double h, const char* label) {
+    if (!svg) return;
+    if (w < 0) { x += w; w = -w; }
+    if (h < 0) { y += h; h = -h; }
+
+    svg_printf(svg,
+      "<rect x=\"%.3f\" y=\"%.3f\" width=\"%.3f\" height=\"%.3f\" "
+      "fill=\"none\" stroke=\"#444\" stroke-dasharray=\"4,3\"/>\n",
+      x, y, w, h);
+
+    if (label && *label) {
+        char esc[1024]; xml_escape_into(label, esc, sizeof esc);
+        svg_printf(svg,
+          "<text x=\"%.3f\" y=\"%.3f\" fill=\"#444\" font-size=\"10\" "
+          "font-family=\"sans-serif\">%s</text>\n",
+          x + 3, y - 3, esc);
+    }
 }

@@ -1,62 +1,83 @@
-# ========= Config =========
-PROJECT := trab1
+# ==========================
+# Bocha Geométrica — Makefile
+# ==========================
+
+# Nome do binário final
+APP      := app
+
+# Diretórios do projeto
+SRC_DIRS := . operadorde_de_arquivo tads_gerais formas tads_trabalho
+BUILD    := build
+BIN      := bin
+
+# Descobre todos os .c automaticamente
+SRCS := $(foreach d,$(SRC_DIRS),$(wildcard $(d)/*.c))
+OBJS := $(patsubst %.c,$(BUILD)/%.o,$(SRCS))
+
+# Compilador e flags
 CC      := gcc
-
-WARN    := -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-qual \
-           -Wstrict-prototypes -Wmissing-prototypes
-CSTD    := -std=c11
+CSTD    := -std=c99
+WARN    := -Wall -Wextra
+SEC     := -fstack-protector-all
 OPT     := -O2
+# Define M_PI se faltar no math.h (corrige "M_PI undefined")
+MATHPI  := -DM_PI=3.14159265358979323846
+# Se seu TEXTO não tem estilo, descomente a linha abaixo:
+# TEXTMODE := -DTEXTO_SEM_ESTILO
+# Se seu TEXTO tem estilo, descomente esta:
+# TEXTMODE := -DTEXTO_TEM_ESTILO
 
-# DEBUG=1 -> build com -g e -O0
-DEBUG ?= 0
-ifeq ($(DEBUG),1)
-  CFLAGS := $(CSTD) $(WARN) -g3 -O0
-else
-  CFLAGS := $(CSTD) $(WARN) $(OPT)
+CFLAGS  := $(CSTD) $(WARN) $(SEC) $(OPT) $(MATHPI) $(TEXTMODE)
+
+# Inclui diretórios de headers
+INCLUDES := -I. -Ioperadorde_de_arquivo -Itads_gerais -Iformas -Itads_trabalho
+
+# Bibliotecas de link
+LDLIBS  := -lm
+LDFLAGS :=
+
+# Sanitizers opcionais: make SAN=1
+ifeq ($(SAN),1)
+CFLAGS  += -fsanitize=address,undefined -fno-omit-frame-pointer
+LDFLAGS += -fsanitize=address,undefined
 endif
 
-INCLUDES := -I. -Iformas -Itads_gerais -Itads_trabalho
+# ==========================
+# Alvos principais
+# ==========================
+.PHONY: all clean run dirs
 
-# ========= Layout =========
-BINDIR := bin
-OBJDIR := build
-TARGET := $(BINDIR)/$(PROJECT)
+all: dirs $(BIN)/$(APP)
 
-# pegue todos .c das pastas e também um eventual main.c na raiz
-SRC := $(wildcard formas/*.c) \
-       $(wildcard tads_gerais/*.c) \
-       $(wildcard tads_trabalho/*.c) \
-       $(wildcard *.c)
+# Link final
+$(BIN)/$(APP): $(OBJS)
+	@echo "  [LD] $@"
+	@$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-# mapeia para objetos dentro de build/ preservando subpastas
-OBJ := $(patsubst %.c,$(OBJDIR)/%.o,$(SRC))
-
-# ========= Regras =========
-.PHONY: all clean run debug print
-
-all: $(TARGET)
-
-$(TARGET): $(OBJ)
-	@mkdir -p $(BINDIR)
-	$(CC) $(OBJ) -lm -o $@
-
-# regra genérica para compilar qualquer .c em qualquer subpasta
-$(OBJDIR)/%.o: %.c
+# Regra geral de compilação: build/xxx.o a partir de xxx.c
+$(BUILD)/%.o: %.c | dirs
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "  [CC] $<"
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-run: $(TARGET)
-	./$(TARGET)
+# Cria pastas de build/bin se não existirem
+dirs:
+	@mkdir -p $(BIN) $(BUILD)
+	@$(foreach d,$(SRC_DIRS), mkdir -p $(BUILD)/$(d);)
 
-debug:
-	$(MAKE) DEBUG=1
+# Executar rapidamente: make run ARGS="-e in -f a.geo -o out -q a.qry"
+run: $(BIN)/$(APP)
+	@$(BIN)/$(APP) $(ARGS)
 
-print:
-	@echo "SRC = $(SRC)"
-	@echo "OBJ = $(OBJ)"
-	@echo "TARGET = $(TARGET)"
-	@echo "CFLAGS = $(CFLAGS)"
-	@echo "INCLUDES = $(INCLUDES)"
-
+# Limpeza
 clean:
-	rm -rf $(OBJDIR) $(BINDIR)
+	@echo "  [CLEAN]"
+	@rm -rf $(BUILD) $(BIN)
+
+# ==========================
+# Dicas de uso:
+#  - Compilar:            make
+#  - Compilar com ASAN:   make SAN=1
+#  - Rodar com args:      make run ARGS="-e in -f cidade.geo -o out -q a.qry"
+#  - Limpar:              make clean
+# ==========================

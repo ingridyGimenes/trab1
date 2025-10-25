@@ -2,6 +2,8 @@
 #include "../tads_gerais/pilha.h"
 #include "../tads_gerais/fila.h"
 
+typedef void* DISPARADOR;
+
 // Move formas do carregador (pilha) para a arena (fila)
 void dispararForma(PILHA carregador, FILA arena, int quantidade);
 

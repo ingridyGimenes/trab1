@@ -1,14 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <stdbool.h>
 #include "processador.h"
-#include "/workspaces/trab1/tads_gerais/fila.h"
-#include "/workspaces/trab1/formas/circulo.h"
-#include "/workspaces/trab1/formas/retangulo.h"
-#include "/workspaces/trab1/formas/linha.h"
-#include "/workspaces/trab1/formas/texto.h"
+#include "fila.h"
+#include "geometria.h"   // dispatcher genérico de interseção & áreas (ver notas)
 
+/* --------------------------------------------------------------------------
+   PROCESSADOR
+   - Mantém pontuação e contadores
+   - Processa a FILA "arena" de FORMAS (cada item: {tipo, ptr}) na ordem de lançamento
+   - Aplica as regras do enunciado para pares (i, i+1)
+
+   Requisitos de integração:
+   - A Fila deve conter ponteiros para objetos "FORMA" (wrapper opaco do jogo),
+     definidos em geometria.h:
+
+       typedef struct {
+           char  tipo;  // 'r','c','l','t'
+           void *obj;   // ponteiro real para o TAD específico
+       } Forma;
+
+   - geometria.h deve expor estas funções (implementadas por você nos TADs específicos):
+       bool    formas_intersectam(const Forma* A, const Forma* B);
+       double  area_forma(const Forma* F);
+       void    borda_de_B_recebe_corp_de_A(Forma* A, Forma* B); // muda cor da borda de B
+       Forma*  clona_forma_com_cores_trocadas(const Forma* A, int novoId);
+       void    destruir_forma(Forma* F); // desaloca a forma concreta + o wrapper
+
+   - O gerenciador de IDs deve fornecer um próximo id para a clonagem:
+       int     next_id(void);
+   -------------------------------------------------------------------------- */
 
 struct processador {
     double pontuacao_total;
@@ -16,164 +37,111 @@ struct processador {
     int total_esmagadas;
 };
 
-
-
 Processador* cria_processador(void) {
     Processador* p = (Processador*) malloc(sizeof(Processador));
     if (!p) {
         fprintf(stderr, "Erro: falha ao alocar processador.\n");
         return NULL;
     }
-
     p->pontuacao_total = 0.0;
     p->total_clones = 0;
     p->total_esmagadas = 0;
     return p;
 }
 
-/**
- * Determina se há sobreposição entre duas formas genéricas.
- * (Simples — aqui apenas exemplificando círculos e retângulos;
- * em um projeto completo, haveria função polimórfica para cada tipo.)
- */
-static bool sobrepoe_formas(void* f1, void* f2, char tipo1, char tipo2) {
-    if (tipo1 == 'c' && tipo2 == 'c'){
-        return sobrepoe_circulo((Circulo*)f1, (Circulo*)f2);
-    }
-
-      if (tipo1 == 'r' && tipo2 == 'r'){
-        return sobrepoe_circulo((Retangulo*)f1, (Retangulo*)f2);
-    }
-
-    if (tipo1 == 'l' && tipo2 == 'l'){
-        return sobrepoe_circulo((Linha*)f1, (Linha*)f2);
-    }
-
-    if (tipo1 == 'l' && tipo2 == 'l'){
-        return sobrepoe_circulo((Linha*)f1, (Linha*)f2);
-    }
-
-    
-    return false;
+static void devolve_ao_chao(void* chao, Forma* f) {
+    if (!f) return;
+    add_na_fila(chao, f);
 }
 
-/**
- * Calcula área de uma forma genérica.
+/*
+ * Regras do enunciado, por par (I,J), na ordem de lançamento:
+ * - Se sobrepõe:
+ *   - area(I) < area(J): I é destruído (pontua area(I)), J volta ao chão
+ *   - area(I) > area(J): I muda a cor da BORDA de J para corp(I), ambos voltam ao chão
+ *                        e cria-se um CLONE de I com cores trocadas (entra após I e J)
+ *   - áreas iguais: ambos voltam ao chão sem alterações
+ * - Se NÃO sobrepõe: ambos voltam ao chão
  */
-static double area_forma(void* f, char tipo) {
-    if (tipo == 'c'){
-        return area_circulo((Circulo*)f);
-    }
 
-     if (tipo == 'r'){
-        return calcula_area_ret((Retangulo*)f);
-    }
-
-     if (tipo == 't'){
-        return calcula_area_txt((Texto*)f);
-    }
-    
-    return 0.0;
-}
-
-
-static void* clona_forma(void* f, char tipo, int novo_id) {
-    if (tipo == 'c'){
-        return clona_circulo((Circulo*)f, novo_id);
-    }
-      if (tipo == 'r'){
-        return clonaRetangulo((Retangulo*)f, novo_id);
-    }
-     if (tipo == 'l'){
-        return clonaRetangulo((Retangulo*)f, novo_id);
-    }
-    
-    return NULL;
-}
-
-/**
- * Processa a fila da arena
- */
-double processa_formas(Processador* p, Fila* arena, Fila* chao) {
-    if (!p || !arena || fila_vazia(arena)) return 0.0;
+double processa_formas(Processador* p, void* arena, void* chao, int (*next_id)(void)) {
+    if (!p || !arena || !chao) return 0.0;
 
     double area_esmagada_rodada = 0.0;
-    int proximo_id_clone = 10000; // exemplo de base para IDs de clones
 
-    void* f1 = remove_da_fila(arena);
-    void* f2 = NULL;
+    // retira primeiro
+    Forma* I = (Forma*) remove_da_fila(arena);
 
-    while (!fila_vazia(arena)) {
-        f2 = remove_da_fila(arena);
+    while (I) {
+        Forma* J = (Forma*) remove_da_fila(arena); // pode ser NULL se sobrar um
 
-        // para simplificação, vamos supor que ambas são círculos
-        if (sobrepoe_circulo((Circulo*)f1, (Circulo*)f2)) {
-            double a1 = area_circulo((Circulo*)f1);
-            double a2 = area_circulo((Circulo*)f2);
-
-            if (a1 < a2) {
-                // f1 é esmagado
-                area_esmagada_rodada += a1;
-                p->total_esmagadas++;
-                // f2 volta para o chão
-                insere_na_fila(chao, f2);
-                libera_circulo((Circulo*)f1);
-            } else if (a1 > a2) {
-                // f2 tem borda trocada e ambos voltam para o chão
-                area_esmagada_rodada += a2;
-                p->total_esmagadas++;
-
-                // altera a cor de borda de f2 para a de preenchimento de f1
-                Circulo* c1 = (Circulo*)f1;
-                Circulo* c2 = (Circulo*)f2;
-                free(c2->corb);
-                c2->corb = strdup(c1->corp);
-
-                insere_na_fila(chao, f1);
-                insere_na_fila(chao, f2);
-
-                // cria clone com cores trocadas
-                Circulo* clone = clona_circulo(c1, proximo_id_clone++);
-                insere_na_fila(chao, clone);
-                p->total_clones++;
-            } else {
-                // mesma área → sem esmagamento
-                insere_na_fila(chao, f1);
-                insere_na_fila(chao, f2);
-            }
-        } else {
-            // sem sobreposição → voltam para o chão
-            insere_na_fila(chao, f1);
-            insere_na_fila(chao, f2);
+        if (!J) {
+            // ímpar: não há par para I → volta ao chão na mesma ordem relativa
+            devolve_ao_chao(chao, I);
+            I = NULL;
+            break;
         }
 
-        // prepara próximo par
-        if (!fila_vazia(arena))
-            f1 = remove_da_fila(arena);
-        else
-            f1 = NULL;
+        bool colide = formas_intersectam(I, J);
+        if (colide) {
+            double aI = area_forma(I);
+            double aJ = area_forma(J);
+
+            if (aI < aJ) {
+                // I esmagado
+                area_esmagada_rodada += aI;
+                p->total_esmagadas++;
+                devolve_ao_chao(chao, J);
+                destruir_forma(I);
+
+            } else if (aI > aJ) {
+                // I altera borda de J; ambos voltam; clona I com cores trocadas
+                area_esmagada_rodada += aJ;
+                p->total_esmagadas++;
+
+                borda_de_B_recebe_corp_de_A(I, J);
+                devolve_ao_chao(chao, I);
+                devolve_ao_chao(chao, J);
+
+                int novoId = next_id ? next_id() : 0; // se não houver, 0 (ajuste se preferir exigir)
+                Forma* clone = clona_forma_com_cores_trocadas(I, novoId);
+                if (clone) {
+                    devolve_ao_chao(chao, clone);
+                    p->total_clones++;
+                }
+            } else {
+                // áreas iguais → sem esmagamento
+                devolve_ao_chao(chao, I);
+                devolve_ao_chao(chao, J);
+            }
+        } else {
+            // sem sobreposição → ambos voltam ao chão
+            devolve_ao_chao(chao, I);
+            devolve_ao_chao(chao, J);
+        }
+
+        // próximo par
+        I = (Forma*) remove_da_fila(arena);
     }
 
     p->pontuacao_total += area_esmagada_rodada;
     return area_esmagada_rodada;
 }
 
+// getters
+
 double get_pontuacao_total(Processador* p) {
-    if (!p) return 0.0;
-    return p->pontuacao_total;
+    return p ? p->pontuacao_total : 0.0;
 }
 
 int get_total_clones(Processador* p) {
-    if (!p) return 0;
-    return p->total_clones;
+    return p ? p->total_clones : 0;
 }
 
 int get_total_esmagadas(Processador* p) {
-    if (!p) return 0;
-    return p->total_esmagadas;
+    return p ? p->total_esmagadas : 0;
 }
 
 void libera_processador(Processador* p) {
-    if (!p) return;
-    free(p);
+    if (p) free(p);
 }

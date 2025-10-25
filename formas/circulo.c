@@ -110,16 +110,16 @@ CIRCLE clonaCirculo(CIRCLE c, int novoId) {
     return (CIRCLE)novo;
 }
 
-void inverteCores(CIRCLE c){
+void inverteCores_cir(CIRCLE c){
     circulo* cir = (circulo*)c;
     circulo* aux = (circulo*)malloc(sizeof(circulo));
     if(aux== NULL){
         printf("erro ao trocar cores");
         exit(1);
     }
-    aux->cor_b = cir->cor_b;
-    cir->cor_b = cir->cor_p;
-    cir->cor_p =  aux->cor_b;
+    aux->cor_b = strdup(cir->cor_b);
+    cir->cor_b = strdup(cir->cor_p);
+    cir->cor_p = strdup(aux->cor_b);
     free(aux);
 }
 

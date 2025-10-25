@@ -137,8 +137,21 @@ retangulo* clonaRetangulo(RETANGULO r, int novoId){
     novo->h = orig->h;
 
     
-    novo->cor_b = strdup(orig->cor_p);
-    novo->cor_p = strdup(orig->cor_b);
+    novo->cor_b = strdup(orig->cor_b);
+    novo->cor_p = strdup(orig->cor_p);
 
     return (RETANGULO)novo;
+}
+
+void inverteCores_ret(RETANGULO c){
+    retangulo* cir = (retangulo*)c;
+    retangulo* aux = (retangulo*)malloc(sizeof(retangulo));
+    if(aux== NULL){
+        printf("erro ao trocar cores");
+        exit(1);
+    }
+    aux->cor_b = strdup(cir->cor_b);
+    cir->cor_b = strdup(cir->cor_p);
+    cir->cor_p = strdup(aux->cor_b);
+    free(aux);
 }

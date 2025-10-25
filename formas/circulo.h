@@ -22,6 +22,7 @@ void setYCirculo(CIRCLE c, double y);
 void setXCirculo(CIRCLE c, double x);
 void setCorBordaCirculo(CIRCLE c, const char* novaCor);
 void setCorPreenchimentoCirculo(CIRCLE c, const char* novaCor);
+void inverteCores_cir(CIRCLE c);
 
 double areaCirculo(CIRCLE c);
 CIRCLE clonaCirculo(CIRCLE c, int novoId);

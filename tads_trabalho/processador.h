@@ -44,4 +44,7 @@ int get_total_esmagadas(Processador* p);
  */
 void libera_processador(Processador* p);
 
+
+
+bool sobrepoe(void* f1, char tipo1, void* f2, char tipo2);
 #endif

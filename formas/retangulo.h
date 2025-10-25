@@ -41,4 +41,6 @@ void exclui_retangulo(RETANGULO r);
 
 void* clonaRetangulo(RETANGULO r, int novoId);
 
+void inverteCores_ret(RETANGULO c);
+
 #endif

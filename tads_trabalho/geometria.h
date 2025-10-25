@@ -1,27 +1,15 @@
-// geometria.h (dispatcher de colisões e áreas)
 #pragma once
 #include <stdbool.h>
-#include "/workspaces/trab1/formas/circulo.h"
-#include "/workspaces/trab1/formas/retangulo.h"
-#include "/workspaces/trab1/formas/linha.h"
-#include "/workspaces/trab1/formas/texto.h"
+#include "/workspaces/trab1/formas/forma.h"
 
-// interseções específicas
-bool ret_intersecta_ret(RETANGULO a, RETANGULO b);
-bool circ_intersecta_circ(CIRCULO a, CIRCULO b);
-bool ret_intersecta_circ(RETANGULO r, CIRCULO c);
-bool seg_intersecta_seg(LINHA a, LINHA b);
+// Verifica se duas formas se intersectam
+bool geometriaFormasIntersectam(FORMA A, FORMA B);
 
-bool ret_intersecta_seg(RETANGULO r, LINHA s);
-bool circ_intersecta_seg(CIRCULO c, LINHA s);
+// Calcula a área de uma forma genérica
+double geometriaAreaForma(FORMA F);
 
-// helpers para TEXTO convertendo pra segmento
-bool ret_intersecta_texto(RETANGULO r, TEXTO t);
-bool circ_intersecta_texto(CIRCULO c, TEXTO t);
-bool seg_intersecta_texto(LINHA s, TEXTO t);
+// Clona uma forma com cores invertidas (usada em esmagamentos)
+FORMA geometriaClonaFormaComCoresTrocadas(FORMA F, int novoId);
 
-// área “efetiva” para regra de esmagamento:
-double area_ret(RETANGULO r);          // w*h
-double area_circ(CIRCULO c);           // pi*r^2
-double area_linha(LINHA l);            // 2.0 * comprimento
-double area_texto(TEXTO t);            // 20.0 * |t|
+// Faz a borda de B receber a cor de preenchimento de A
+void geometriaBordaDeBRecebeCorpDeA(FORMA A, FORMA B);

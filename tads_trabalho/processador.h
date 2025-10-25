@@ -1,50 +1,24 @@
-#ifndef PROCESSADOR_H
-#define PROCESSADOR_H
+#pragma once
 #include "/workspaces/trab1/tads_gerais/fila.h"
-#include "/workspaces/trab1/formas/circulo.h"
-#include "/workspaces/trab1/formas/retangulo.h"
-#include "/workspaces/trab1/formas/linha.h"
-#include "/workspaces/trab1/formas/texto.h"
+#include "/workspaces/trab1/tads_gerais/pilha.h"
+#include "/workspaces/trab1/formas/forma.h"
 
-/// Estrutura opaca do Processador
-typedef struct processador Processador;
+typedef struct processador* PROCESSADOR;
 
-/**
- * Cria um novo processador.
- */
-Processador* cria_processador(void);
+// Cria e inicializa um novo processador
+PROCESSADOR criaProcessador(void);
 
-/**
- * Processa as formas da arena, aplicando as regras do enunciado.
- * Parâmetros:
- *   arena → fila com as formas disparadas
- *   chao  → fila com as formas “no chão”
- * 
- * Retorna: área total esmagada nesta rodada.
- */
-double processa_formas(Processador* p, Fila* arena, Fila* chao);
+// Processa colisões na arena e pontua
+double processarArena(PROCESSADOR p, FILA arena, FILA chao);
 
-/**
- * Retorna a pontuação total acumulada (soma de todas as rodadas).
- */
-double get_pontuacao_total(Processador* p);
+// Estatísticas
+double getPontuacaoTotal(PROCESSADOR p);
+int getTotalClones(PROCESSADOR p);
+int getTotalEsmagadas(PROCESSADOR p);
+int getTotalDisparos(PROCESSADOR p);
 
-/**
- * Retorna o número total de formas clonadas até agora.
- */
-int get_total_clones(Processador* p);
+// Atualiza contadores
+void registrarDisparo(PROCESSADOR p);
 
-/**
- * Retorna o número total de formas esmagadas até agora.
- */
-int get_total_esmagadas(Processador* p);
-
-/**
- * Libera toda a memória associada ao processador.
- */
-void libera_processador(Processador* p);
-
-
-
-bool sobrepoe(void* f1, char tipo1, void* f2, char tipo2);
-#endif
+// Libera memória
+void destruirProcessador(PROCESSADOR p);

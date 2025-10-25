@@ -4,7 +4,7 @@
 #include "processador.h"
 #include "fila.h"
 #include "geometria.h"   // dispatcher genérico de interseção & áreas (ver notas)
-
+#include "/workspaces/trab1/formas/forma.h"
 /* --------------------------------------------------------------------------
    PROCESSADOR
    - Mantém pontuação e contadores

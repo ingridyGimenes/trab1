@@ -1,198 +1,185 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "texto.h"
+
+/*
+  TAD TEXTO (opaco)
+  - struct interna só neste .c
+  - corrige criação, getters/setters e área (20.0 * |t|)
+  - ancora como CHAR ('i'|'m'|'f'), conforme enunciado
+  - adiciona aliases para geometria.c: get_x_txt, get_y_txt, get_ancora_txt, get_len_txt,
+    get_corp_txt, set_corb_txt, clona_texto, inverte_cores_txt
+*/
 
 typedef struct{
     char* family;
     char* weight;
     char* size;
-}estilo;
+} estilo;
 
 typedef struct{
-
     int id;
     double x;
     double y;
     char *corB;
     char *corP;
-    char *ancora;
+    char ancora;   // <- armazenar como caractere
     char *txto;
     estilo txtstyle;
+} texto;
 
-}texto;
+static inline texto* as(TEXTO t){ return (texto*) t; }
+static inline estilo* asE(Estilo e){ return (estilo*) e; }
 
-Estilo cria_estilo(char* Family, char* Weight, char* Size ){
+static char* dupstr(const char* s){ if(!s) return NULL; size_t n=strlen(s)+1; char* d=(char*)malloc(n); if(d) memcpy(d,s,n); return d; }
 
-        estilo *ts = (estilo*)malloc(sizeof(estilo));
-            if( ts == NULL){
-                printf("erro ao alocar memoria");
-                exit(1);
-            }
+// ---------------------------------------------------------------------------
+// criação / destruição
+// ---------------------------------------------------------------------------
 
-        ts->family = (char*)malloc(strlen(Family)+1);
-            if(ts->family == NULL){
-                printf("erro a alocar family");
-                exit(1);
-            }
-        strcpy(ts->family, "" );
-
-        ts->weight = (char*)malloc(strlen(Weight)+1);
-            if(ts->weight == NULL){
-                printf("erro a alocar weight");
-                exit(1);
-            }
-        strcpy(ts->weight, "" );
-
-        ts->size = (char*)malloc(strlen(Size)+1);
-            if(ts->size == NULL){
-                printf("erro a alocar size");
-                exit(1);
-            }
-        strcpy(ts->size, "" );
-
-        return ts;
+Estilo cria_estilo(const char* Family, const char* Weight, const char* Size ){
+    estilo *ts = (estilo*) malloc(sizeof(estilo));
+    if(!ts) { fprintf(stderr, "erro ao alocar estilo\n"); return NULL; }
+    ts->family = dupstr(Family);
+    ts->weight = dupstr(Weight);
+    ts->size   = dupstr(Size);
+    if ((Family && !ts->family) || (Weight && !ts->weight) || (Size && !ts->size)){
+        free(ts->family); free(ts->weight); free(ts->size); free(ts);
+        return NULL;
+    }
+    return (Estilo) ts;
 }
 
-TEXTO cria_texto( int i, double codX, double codY, char *cor_b, char *cor_p, char *a, char *TXTO){
-    texto *txt = (texto*)malloc(sizeof(texto));
-        
-        if(txt == NULL){
-            printf("erro ao alocar do txt");
-        }
-     
-    txt->id = i;
-    txt->x = codX;
-    txt->y = codY;
-
-    txt->corB = (char*)malloc(strlen(cor_b)+1);
-            if(txt->corB == NULL){
-                printf("erro ao alocar corB");
-                exit(1);
-            }
-        strcpy(txt->corB, cor_b);
-
-
-    txt->corP = (char*)malloc(strlen(cor_p)+1);
-        if(txt->corP == NULL){
-            printf("erro ao alocar corP");
-            exit(1);
-        }
-     strcpy(txt->corP, cor_p);
-
-
-    txt->ancora = (char*)malloc(strlen(a)+1);
-            if(txt->ancora == NULL){
-                printf("erro ao alocar ancora");
-                exit(1);
-            }
-     strcpy(txt->ancora, a);
-
-     txt->txto = (char*)malloc(strlen(TXTO)+1);
-            if(txt->txto == NULL){
-                printf("erro ao alocar txto");
-                exit(1);
-            }
-        strcpy(txt->txto, TXTO);
+void destruir_estilo(Estilo e){
+    estilo* es = asE(e);
+    if(!es) return;
+    free(es->family); free(es->weight); free(es->size); free(es);
 }
 
-
-int get_id_txt(TEXTO t){
-    texto *txt = ((texto*)t);
-    return txt->id;
+TEXTO cria_texto(int i, double x, double y, const char *cor_b, const char *cor_p,
+                 char ancora, const char *TXTO){
+    texto *t = (texto*) malloc(sizeof(texto));
+    if(!t){ fprintf(stderr, "erro ao alocar texto\n"); return NULL; }
+    t->id = i; t->x = x; t->y = y; t->ancora = ancora;
+    t->corB = dupstr(cor_b);
+    t->corP = dupstr(cor_p);
+    t->txto = dupstr(TXTO);
+    t->txtstyle.family = dupstr("sans");
+    t->txtstyle.weight = dupstr("n");
+    t->txtstyle.size   = dupstr("12");
+    if ((cor_b && !t->corB) || (cor_p && !t->corP) || (TXTO && !t->txto) ||
+        !t->txtstyle.family || !t->txtstyle.weight || !t->txtstyle.size){
+        free(t->corB); free(t->corP); free(t->txto);
+        free(t->txtstyle.family); free(t->txtstyle.weight); free(t->txtstyle.size);
+        free(t); return NULL;
+    }
+    return (TEXTO) t;
 }
 
-double get_codx_txt(TEXTO t){
-    texto *txt = ((texto*)t);
-    return txt->x;
+void destruir_texto(TEXTO t){
+    texto* tx = as(t);
+    if(!tx) return;
+    free(tx->corB); free(tx->corP); free(tx->txto);
+    free(tx->txtstyle.family); free(tx->txtstyle.weight); free(tx->txtstyle.size);
+    free(tx);
 }
 
-double get_cody_txt(TEXTO t){
-    texto *txt = ((texto*)t);
-    return txt->y;
+// ---------------------------------------------------------------------------
+// getters originais (alguns ajustados)
+// ---------------------------------------------------------------------------
+
+int    get_id_txt(TEXTO t){ return as(t)->id; }
+double get_codx_txt(TEXTO t){ return as(t)->x; }
+double get_cody_txt(TEXTO t){ return as(t)->y; }
+char*  get_corB_txt(TEXTO t){ return as(t)->corB; }
+char*  get_corP_txt(TEXTO t){ return as(t)->corP; }
+char   get_ancora_txt(TEXTO t){ return as(t)->ancora; } // agora retorna char
+char*  get_txto_txt(TEXTO t){ return as(t)->txto; }
+
+char*  getFamily(Estilo e){ return asE(e)->family; }
+char*  getWeight(Estilo e){ return asE(e)->weight; }
+char*  getSize(Estilo e){ return asE(e)->size; }
+
+int    get_len_txt(TEXTO t){ return (int)(as(t)->txto ? (int)strlen(as(t)->txto) : 0); }
+
+// ---------------------------------------------------------------------------
+// setters (corrigidos)
+// ---------------------------------------------------------------------------
+
+void set_codx_txt(TEXTO t, double Cx){ as(t)->x = Cx; }
+void set_cody_txt(TEXTO t, double Cy){ as(t)->y = Cy; }
+
+void set_corB_txt(TEXTO t, const char* cor_b){
+    texto* T = as(t); char* n = dupstr(cor_b);
+    if(!cor_b || n){ free(T->corB); T->corB = n; }
+}
+void set_corP_txt(TEXTO t, const char* cor_p){
+    texto* T = as(t); char* n = dupstr(cor_p);
+    if(!cor_p || n){ free(T->corP); T->corP = n; }
 }
 
-char* get_corB_txt(TEXTO t){
-    texto *txt = ((texto*)t);
-    return txt->corB;
+void set_ancora_txt(TEXTO t, char anc){ as(t)->ancora = anc; }
+
+void set_txto_txt(TEXTO t, const char* cont){
+    texto* T = as(t); char* n = dupstr(cont);
+    if(!cont || n){ free(T->txto); T->txto = n; }
 }
 
-char* get_corP_txt(TEXTO t){
-    texto *txt = ((texto*)t);
-    return txt->corP;
+void setFamily(Estilo e, const char* familia){
+    estilo* E = asE(e); char* n = dupstr(familia);
+    if(!familia || n){ free(E->family); E->family = n; }
+}
+void setWeight(Estilo e, const char* wgt){
+    estilo* E = asE(e); char* n = dupstr(wgt);
+    if(!wgt || n){ free(E->weight); E->weight = n; }
+}
+void setSize(Estilo e, const char* sz){
+    estilo* E = asE(e); char* n = dupstr(sz);
+    if(!sz || n){ free(E->size); E->size = n; }
 }
 
-char* get_ancora_txt(TEXTO t){
-    texto *txt = ((texto*)t);
-    return txt->ancora;
-}
-
-char* get_txto_txt(TEXTO t){
-    texto *txt = ((texto*)t);
-    return txt->txto;
-}
-
-char* getFamily(Estilo e){
-    estilo* es = ((estilo*)e);
-    return es->family;
-}
-
-char* getWeight(Estilo e){
-    estilo* es = ((estilo*)e);
-    return es->weight;
-}
-
-char* getSize(Estilo e){
-    estilo* es = ((estilo*)e);
-    return es->size;
-}
-
-
-void set_codx_txt(TEXTO t, double Cx){
-    texto* T = ((texto*)t);
-    T->x = Cx;
-}
-
-void set_cody_txt(TEXTO t, double Cy){
-     texto* T = ((texto*)t);
-    T->x = Cy;
-}
-
-void set_corB_txt(TEXTO t, char* cor_b){
-     texto* T = ((texto*)t);
-    strcpy(T->corB, cor_b);
-}
-
-void set_corP_txt(TEXTO t, char* cor_p){
-     texto* T = ((texto*)t);
-    strcpy(T->corB, cor_p);
-}
-
-void set_ancora_txt(TEXTO t, char* anc){
-    texto* T = ((texto*)t);
-    strcpy(T->corB, anc);
-}
-
-void set_txto_txt(TEXTO t, char* cont){
-     texto* T = ((texto*)t);
-    strcpy(T->txto, cont);
-}
-
-void setFamily(Estilo e, char* familia){
-     estilo* E = ((estilo*)e);
-   strcpy(E->family, familia);
-}
-
-void setWeight(Estilo e, char* wgt){
-    estilo* E = ((estilo*)e);
-    strcpy(E->weight, wgt);
-}
-
-void setSize(Estilo e, char* sz){
-     estilo* E = ((estilo*)e);
-    strcpy(E->size, sz);
-}
+// ---------------------------------------------------------------------------
+// util
+// ---------------------------------------------------------------------------
 
 double calcula_area_txt(TEXTO t){
-    
+    return 20.0 * (double) get_len_txt(t); // conforme enunciado
 }
+
+TEXTO clona_texto(TEXTO t, int novoId){
+    texto* o = as(t); if(!o) return NULL;
+    texto* n = (texto*) malloc(sizeof(texto)); if(!n) return NULL;
+    *n = *o; n->id = novoId; // copia campos escalares e ancora
+    n->corB = dupstr(o->corB);
+    n->corP = dupstr(o->corP);
+    n->txto = dupstr(o->txto);
+    n->txtstyle.family = dupstr(o->txtstyle.family);
+    n->txtstyle.weight = dupstr(o->txtstyle.weight);
+    n->txtstyle.size   = dupstr(o->txtstyle.size);
+    if ((o->corB && !n->corB) || (o->corP && !n->corP) || (o->txto && !n->txto) ||
+        (o->txtstyle.family && !n->txtstyle.family) || (o->txtstyle.weight && !n->txtstyle.weight) ||
+        (o->txtstyle.size && !n->txtstyle.size)){
+        free(n->corB); free(n->corP); free(n->txto);
+        free(n->txtstyle.family); free(n->txtstyle.weight); free(n->txtstyle.size);
+        free(n); return NULL;
+    }
+    return (TEXTO) n;
+}
+
+void inverte_cores_txt(TEXTO t){
+    texto* tx = as(t); if(!tx) return;
+    char* tmp = tx->corB; tx->corB = tx->corP; tx->corP = tmp; // swap sem alocação
+}
+
+// ---------------------------------------------------------------------------
+// aliases para geometria.c
+// ---------------------------------------------------------------------------
+
+double      get_x_txt(TEXTO t){ return get_codx_txt(t); }
+double      get_y_txt(TEXTO t){ return get_cody_txt(t); }
+char        get_anc_txt(TEXTO t){ return get_ancora_txt(t); } // alias de char
+int         get_len_txt_alias(TEXTO t){ return get_len_txt(t); }
+const char* get_corp_txt(TEXTO t){ return get_corP_txt(t); }
+void        set_corb_txt(TEXTO t, const char* c){ set_corB_txt(t, c); }

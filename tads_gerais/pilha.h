@@ -1,24 +1,16 @@
-#ifndef pilha_h
-#define pilha_h
+#pragma once
+#include <stdbool.h>
 
-typedef void *Pilha;
+typedef void* PILHA;
 
-void* cria_pilha();
+PILHA criaPilha(void);
+bool push(PILHA pilha, void* valor);
+void* pop(PILHA pilha);
+void* topoPilha(PILHA pilha);
+void* segundoPilha(PILHA pilha);
+bool pilhaVazia(PILHA pilha);
+int tamanhoPilha(PILHA pilha);
+void imprimePilha(PILHA pilha, void (*printFn)(void*));
 
-bool add_na_pilha(void* pilha, void* valor);
-
-void* retira_da_pilha(void* pilha);
-
-void imprime_pilha(void* pilha);
-
-void* esvazia_pilha(void* pilha);
-
-void* primeiro_pilha(void* pilha);
-
-void* segundo_pilha(void* pilha);
-
-int tamanho_pilha(void* pilha);
-
-bool pilha_vazia(void* pilha);
-
-#endif
+void esvaziaPilha(PILHA pilha, void (*freeFn)(void*));
+void destruirPilha(PILHA pilha, void (*freeFn)(void*));

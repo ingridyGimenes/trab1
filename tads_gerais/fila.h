@@ -1,22 +1,16 @@
-#ifndef fila_h
-#define fila_h
+#pragma once
+#include <stdbool.h>
 
-typedef void *Fila;
+typedef void* FILA;
 
-void cria_fila();
+FILA criaFila(void);
+bool insereNaFila(FILA fila, void* valor);
+void* removeDaFila(FILA fila);
+void* primeiroFila(FILA fila);
+void* segundoFila(FILA fila);
+bool filaVazia(FILA fila);
+int tamanhoFila(FILA fila);
+void imprimeFila(FILA fila, void (*printFn)(void*));
 
-void add_na_fila(void* fila, void* valor);
-
-void* remove_da_fila(void* fila);
-
-void imprime_fila(void* fila);
-
-void* esvazia_fila(void* fila);
-
-int tamanho_fila(void* fila);
-
-void* primeiro_fila(void* fila);
-
-void* segundo_fila(void* fila);
-
-#endif
+void esvaziaFila(FILA fila, void (*freeFn)(void*));
+void destruirFila(FILA fila, void (*freeFn)(void*));

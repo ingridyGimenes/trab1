@@ -1,148 +1,117 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include "pilha.h"
 
-/*
-  IMPLEMENTAÇÃO DE PILHA ENCADEADA GENÉRICA
-  - Nós e a struct Pilha ficam APENAS neste .c (proibido expor no .h)
-  - Retornos e mensagens padronizados
-  - Funções extras utilitárias: topo, destruir, esvaziar com destrutor opcional
-*/
-
 typedef struct NO {
-    void *dado;
-    struct NO *prox;
-} no;
-
-typedef no* pont_no;
+    void* dado;
+    struct NO* prox;
+} No;
 
 typedef struct {
-    pont_no comeco; // topo da pilha
+    No* topo;
     int tam;
-} Pilha;
+} PilhaInterna;
 
-typedef Pilha* pont_p;
-
-// --- Criação / Destruição ---------------------------------------------------
-
-void* cria_pilha(void) {
-    pont_p p = (pont_p) malloc(sizeof(Pilha));
-    if (p == NULL) {
-        fprintf(stderr, "erro ao alocar pilha\n");
-        return NULL;
+PILHA criaPilha(void) {
+    PilhaInterna* p = malloc(sizeof(PilhaInterna));
+    if (!p) {
+        fprintf(stderr, "Erro ao alocar memória para pilha.\n");
+        exit(1);
     }
-    p->comeco = NULL;
+    p->topo = NULL;
     p->tam = 0;
-    return (void*) p;
+    return (PILHA)p;
 }
 
-/*
- * Esvazia todos os nós da pilha.
- * Se for passado um destrutor (func que recebe void*), aplica ao dado antes de liberar o nó.
- */
-void esvazia_pilha(void* pilha, void (*destrutor)(void*)) {
-    if (pilha == NULL) return;
-    pont_p p = (pont_p) pilha;
-    pont_no aux = p->comeco;
-    while (aux) {
-        pont_no proximo = aux->prox;
-        if (destrutor) destrutor(aux->dado);
-        free(aux);
-        aux = proximo;
-    }
-    p->comeco = NULL;
-    p->tam = 0;
-}
+bool push(PILHA pilha, void* valor) {
+    if (!pilha) return false;
+    PilhaInterna* p = (PilhaInterna*)pilha;
 
-/*
- * Destrói a pilha por completo (nós + struct Pilha).
- * Aceita destrutor opcional para os dados.
- */
-void destruir_pilha(void* pilha, void (*destrutor)(void*)) {
-    if (pilha == NULL) return;
-    esvazia_pilha(pilha, destrutor);
-    free((pont_p) pilha);
-}
-
-// --- Operações básicas ------------------------------------------------------
-
-bool add_na_pilha(void* pilha, void* valor) {
-    if (pilha == NULL) {
-        fprintf(stderr, "pilha nula em add_na_pilha\n");
+    No* novo = malloc(sizeof(No));
+    if (!novo) {
+        fprintf(stderr, "Erro ao alocar nó da pilha.\n");
         return false;
     }
-    pont_p p = (pont_p) pilha;
-    pont_no temp = (pont_no) malloc(sizeof(no));
-    if (temp == NULL) {
-        fprintf(stderr, "erro ao alocar novo no\n");
-        return false;
-    }
-    temp->dado = valor;
-    temp->prox = p->comeco;
-    p->comeco = temp;
+
+    novo->dado = valor;
+    novo->prox = p->topo;
+    p->topo = novo;
     p->tam++;
     return true;
 }
 
-void* retira_da_pilha(void* pilha) {
-    if (pilha == NULL) {
-        fprintf(stderr, "pilha nula em retira_da_pilha\n");
-        return NULL;
-    }
-    pont_p p = (pont_p) pilha;
-    pont_no aux = p->comeco;
-    if (aux == NULL) {
-        // pilha vazia não é erro fatal; apenas retorna NULL
-        return NULL;
-    }
+void* pop(PILHA pilha) {
+    if (!pilha) return NULL;
+    PilhaInterna* p = (PilhaInterna*)pilha;
+
+    if (p->topo == NULL) return NULL;
+
+    No* aux = p->topo;
     void* valor = aux->dado;
-    p->comeco = aux->prox;
-    aux->prox = NULL; // higiene
+
+    p->topo = aux->prox;
     free(aux);
     p->tam--;
+
     return valor;
 }
 
-void* primeiro_pilha(void* pilha) { // topo
-    if (pilha == NULL) return NULL;
-    pont_p p = (pont_p) pilha;
-    return p->comeco ? p->comeco->dado : NULL;
+void* topoPilha(PILHA pilha) {
+    if (!pilha) return NULL;
+    PilhaInterna* p = (PilhaInterna*)pilha;
+    return (p->topo ? p->topo->dado : NULL);
 }
 
-void* segundo_pilha(void* pilha) { // segundo elemento a partir do topo
-    if (pilha == NULL) return NULL;
-    pont_p p = (pont_p) pilha;
-    return (p->comeco && p->comeco->prox) ? p->comeco->prox->dado : NULL;
+void* segundoPilha(PILHA pilha) {
+    if (!pilha) return NULL;
+    PilhaInterna* p = (PilhaInterna*)pilha;
+    return (p->topo && p->topo->prox ? p->topo->prox->dado : NULL);
 }
 
-int tamanho_pilha(void* pilha) {
-    if (pilha == NULL) return 0;
-    pont_p p = (pont_p) pilha;
+bool pilhaVazia(PILHA pilha) {
+    if (!pilha) return true;
+    PilhaInterna* p = (PilhaInterna*)pilha;
+    return (p->tam == 0);
+}
+
+int tamanhoPilha(PILHA pilha) {
+    if (!pilha) return 0;
+    PilhaInterna* p = (PilhaInterna*)pilha;
     return p->tam;
 }
 
-bool pilha_vazia(void* pilha) {
-    if (pilha == NULL) return true;
-    pont_p p = (pont_p) pilha;
-    return (p->comeco == NULL);
-}
+void imprimePilha(PILHA pilha, void (*printFn)(void*)) {
+    if (!pilha) return;
+    PilhaInterna* p = (PilhaInterna*)pilha;
+    No* aux = p->topo;
 
-// --- Debug ------------------------------------------------------------------
-
-void imprime_pilha(void* pilha, void (*print_dado)(const void*)) {
-    if (pilha == NULL) {
-        printf("pilha: (nula)\n");
-        return;
-    }
-    pont_p p = (pont_p) pilha;
-    pont_no aux = p->comeco;
-    printf("pilha (tam=%d): ", p->tam);
+    printf("Pilha (tamanho: %d): ", p->tam);
     while (aux) {
-        if (print_dado) print_dado(aux->dado);
-        else printf("%p", aux->dado);
-        if (aux->prox) printf(" -> ");
+        if (printFn) printFn(aux->dado);
+        else printf("%p ", aux->dado);
         aux = aux->prox;
     }
     printf("\n");
+}
+
+void esvaziaPilha(PILHA pilha, void (*freeFn)(void*)) {
+    if (!pilha) return;
+    PilhaInterna* p = (PilhaInterna*)pilha;
+    No* atual = p->topo;
+
+    while (atual) {
+        No* proximo = atual->prox;
+        if (freeFn) freeFn(atual->dado);
+        free(atual);
+        atual = proximo;
+    }
+
+    p->topo = NULL;
+    p->tam = 0;
+}
+
+void destruirPilha(PILHA pilha, void (*freeFn)(void*)) {
+    if (!pilha) return;
+    esvaziaPilha(pilha, freeFn);
+    free(pilha);
 }

@@ -1,155 +1,133 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include "fila.h"
 
-/*
-  IMPLEMENTAÇÃO DE FILA ENCADEADA GENÉRICA (FIFO)
-  - Nós e a struct Fila ficam APENAS neste .c (não expor no .h)
-  - Interface: cria_fila, destruir_fila, esvazia_fila, add_na_fila, remove_da_fila,
-               primeiro_fila, segundo_fila, tamanho_fila, fila_vazia, imprime_fila
-*/
-
 typedef struct NO {
-    void *dado;
-    struct NO *prox;
-} no;
-
-typedef no* pont_no;
+    void* dado;
+    struct NO* prox;
+} No;
 
 typedef struct {
-    pont_no comeco; // frente da fila (deonde removemos)
-    pont_no fim;    // traseira da fila (onde inserimos)
+    No* comeco;
+    No* fim;
     int tam;
-} Fila;
+} FilaInterna;
 
-typedef Fila* pont_f;
-
-// --- Criação / Destruição ---------------------------------------------------
-
-void* cria_fila(void) {
-    pont_f f = (pont_f) malloc(sizeof(Fila));
-    if (f == NULL) {
-        fprintf(stderr, "erro ao alocar memoria da fila\n");
-        return NULL;
+FILA criaFila(void) {
+    FilaInterna* f = malloc(sizeof(FilaInterna));
+    if (!f) {
+        fprintf(stderr, "Erro ao alocar memória para fila.\n");
+        exit(1);
     }
     f->comeco = NULL;
     f->fim = NULL;
     f->tam = 0;
-    return (void*) f;
+    return (FILA)f;
 }
 
-/* Esvazia todos os nós. Aceita destrutor opcional para os dados. */
-void esvazia_fila(void* fila, void (*destrutor)(void*)) {
-    if (fila == NULL) return;
-    pont_f f = (pont_f) fila;
-    pont_no aux = f->comeco;
-    while (aux) {
-        pont_no proximo = aux->prox;
-        if (destrutor) destrutor(aux->dado);
-        free(aux);
-        aux = proximo;
-    }
-    f->comeco = NULL;
-    f->fim = NULL;
-    f->tam = 0;
-}
+bool insereNaFila(FILA fila, void* valor) {
+    if (!fila) return false;
 
-/* Destrói a fila inteira (nós + struct Fila). */
-void destruir_fila(void* fila, void (*destrutor)(void*)) {
-    if (fila == NULL) return;
-    esvazia_fila(fila, destrutor);
-    free((pont_f) fila);
-}
-
-// --- Operações básicas ------------------------------------------------------
-
-bool add_na_fila(void* fila, void* valor) {
-    if (fila == NULL) {
-        fprintf(stderr, "fila nula em add_na_fila\n");
+    FilaInterna* f = (FilaInterna*)fila;
+    No* novo = malloc(sizeof(No));
+    if (!novo) {
+        fprintf(stderr, "Erro ao alocar nó da fila.\n");
         return false;
     }
-    pont_f f = (pont_f) fila;
-    pont_no temp = (pont_no) malloc(sizeof(no));
-    if (temp == NULL) {
-        fprintf(stderr, "erro ao alocar novo no\n");
-        return false;
-    }
-    temp->dado = valor;
-    temp->prox = NULL;
 
-    if (f->fim == NULL) { // fila estava vazia
-        f->comeco = temp;
-        f->fim = temp;
+    novo->dado = valor;
+    novo->prox = NULL;
+
+    if (f->fim == NULL) {
+        f->comeco = novo;
+        f->fim = novo;
     } else {
-        f->fim->prox = temp;
-        f->fim = temp;
+        f->fim->prox = novo;
+        f->fim = novo;
     }
+
     f->tam++;
     return true;
 }
 
-void* remove_da_fila(void* fila) {
-    if (fila == NULL) {
-        fprintf(stderr, "fila nula em remove_da_fila\n");
-        return NULL;
-    }
-    pont_f f = (pont_f) fila;
-    if (f->comeco == NULL) { // vazia
-        return NULL;
+void* removeDaFila(FILA fila) {
+    if (!fila) return NULL;
+    FilaInterna* f = (FilaInterna*)fila;
+
+    if (f->comeco == NULL) {
+        return NULL; // fila vazia
     }
 
-    pont_no aux = f->comeco;
+    No* aux = f->comeco;
     void* valor = aux->dado;
+
     f->comeco = aux->prox;
     if (f->comeco == NULL) {
-        f->fim = NULL; // ficou vazia
+        f->fim = NULL;
     }
-    aux->prox = NULL; // higiene
+
     free(aux);
     f->tam--;
     return valor;
 }
 
-void* primeiro_fila(void* fila) { // frente
-    if (fila == NULL) return NULL;
-    pont_f f = (pont_f) fila;
-    return f->comeco ? f->comeco->dado : NULL;
+void* primeiroFila(FILA fila) {
+    if (!fila) return NULL;
+    FilaInterna* f = (FilaInterna*)fila;
+    return (f->comeco ? f->comeco->dado : NULL);
 }
 
-void* segundo_fila(void* fila) { // segundo elemento
-    if (fila == NULL) return NULL;
-    pont_f f = (pont_f) fila;
-    return (f->comeco && f->comeco->prox) ? f->comeco->prox->dado : NULL;
+void* segundoFila(FILA fila) {
+    if (!fila) return NULL;
+    FilaInterna* f = (FilaInterna*)fila;
+    return (f->comeco && f->comeco->prox ? f->comeco->prox->dado : NULL);
 }
 
-int tamanho_fila(void* fila) {
-    if (fila == NULL) return 0;
-    pont_f f = (pont_f) fila;
+bool filaVazia(FILA fila) {
+    if (!fila) return true;
+    FilaInterna* f = (FilaInterna*)fila;
+    return (f->tam == 0);
+}
+
+int tamanhoFila(FILA fila) {
+    if (!fila) return 0;
+    FilaInterna* f = (FilaInterna*)fila;
     return f->tam;
 }
 
-bool fila_vazia(void* fila) {
-    if (fila == NULL) return true;
-    pont_f f = (pont_f) fila;
-    return (f->comeco == NULL);
-}
+void imprimeFila(FILA fila, void (*printFn)(void*)) {
+    if (!fila) return;
+    FilaInterna* f = (FilaInterna*)fila;
+    No* aux = f->comeco;
 
-// --- Debug ------------------------------------------------------------------
-
-void imprime_fila(void* fila, void (*print_dado)(const void*)) {
-    if (fila == NULL) {
-        printf("fila: (nula)\n");
-        return;
-    }
-    pont_f f = (pont_f) fila;
-    pont_no aux = f->comeco;
-    printf("fila (tam=%d): ", f->tam);
+    printf("Fila (tamanho: %d): ", f->tam);
     while (aux) {
-        if (print_dado) print_dado(aux->dado);
-        else printf("%p", aux->dado);
-        if (aux->prox) printf(" -> ");
+        if (printFn) printFn(aux->dado);
+        else printf("%p ", aux->dado);
         aux = aux->prox;
     }
     printf("\n");
+}
+
+void esvaziaFila(FILA fila, void (*freeFn)(void*)) {
+    if (!fila) return;
+    FilaInterna* f = (FilaInterna*)fila;
+    No* atual = f->comeco;
+
+    while (atual) {
+        No* proximo = atual->prox;
+        if (freeFn) freeFn(atual->dado);
+        free(atual);
+        atual = proximo;
+    }
+
+    f->comeco = NULL;
+    f->fim = NULL;
+    f->tam = 0;
+}
+
+void destruirFila(FILA fila, void (*freeFn)(void*)) {
+    if (!fila) return;
+    esvaziaFila(fila, freeFn);
+    free(fila);
 }

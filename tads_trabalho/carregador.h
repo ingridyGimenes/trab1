@@ -1,11 +1,11 @@
 #pragma once
-#include "fila.h"
+#include "../tads_gerais/fila.h"
 
-// Lê o arquivo .geo e insere as formas na fila chão
+// Lê o arquivo .geo e insere as formas na fila "chao" (na ordem de criação)
 void carregarGeo(const char* caminhoGeo, FILA filaChao);
 
-// Função para liberar recursos do carregador (se necessário)
-void destruirCarregador(void);
-
-// Define estilo global de texto (ts)
+// Define o estilo global de texto (comando 'ts' no .geo)
 void defineEstiloTexto(const char* family, const char* weight, const char* size);
+
+// Libera recursos internos do carregador (estilo global)
+void destruirCarregador(void);

@@ -4,6 +4,7 @@
 typedef void* PILHA;
 
 PILHA criaPilha(void);
+
 bool push(PILHA pilha, void* valor);
 void* pop(PILHA pilha);
 void* topoPilha(PILHA pilha);

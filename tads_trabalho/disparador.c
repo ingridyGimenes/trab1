@@ -1,21 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include "../tads_gerais/pilha.h"
+#include "../tads_gerais/fila.h"
+#include "../formas/forma.h"
 #include "disparador.h"
-#include "forma.h"
 
-void inicializaDisparador(void) {
-    srand((unsigned int)time(NULL));
-}
+/*
+ * Este módulo simula o "disparo" das formas:
+ * - retira elementos do carregador (PILHA)
+ * - insere na arena (FILA)
+ * - não cria cópias, só move os ponteiros
+ * - usado pelos comandos do .qry (pd, dsp, shft, etc.)
+ */
 
-void dispararForma(PILHA carregador, FILA arena) {
-    if (!carregador || !arena) return;
+void dispararForma(PILHA carregador, FILA arena, int quantidade) {
+    if (!carregador || !arena || quantidade <= 0) return;
 
-    void* forma = pop(carregador);
-    if (forma) {
-        pushFila(arena, forma);
-    } else {
-        printf("[Disparador] Carregador vazio.\n");
+    for (int i = 0; i < quantidade; i++) {
+        if (pilhaVazia(carregador)) {
+            // pilha acabou
+            break;
+        }
+        FORMA f = removeDaPilha(carregador);
+        insereNaFila(arena, f);
     }
 }
 
@@ -23,41 +30,7 @@ void dispararTudo(PILHA carregador, FILA arena) {
     if (!carregador || !arena) return;
 
     while (!pilhaVazia(carregador)) {
-        void* forma = pop(carregador);
-        if (forma) {
-            pushFila(arena, forma);
-        }
+        FORMA f = removeDaPilha(carregador);
+        insereNaFila(arena, f);
     }
-}
-
-void dispararAleatorio(PILHA carregador, FILA arena) {
-    if (!carregador || !arena) return;
-
-    // 1. Passar todos os elementos da pilha para um vetor temporário
-    int n = tamanhoPilha(carregador);
-    if (n == 0) return;
-
-    void** formas = malloc(sizeof(void*) * n);
-    for (int i = 0; i < n; i++) {
-        formas[i] = pop(carregador);
-    }
-
-    // 2. Embaralhar vetor (Fisher-Yates)
-    for (int i = n - 1; i > 0; i--) {
-        int j = rand() % (i + 1);
-        void* temp = formas[i];
-        formas[i] = formas[j];
-        formas[j] = temp;
-    }
-
-    // 3. Inserir na arena na nova ordem
-    for (int i = 0; i < n; i++) {
-        pushFila(arena, formas[i]);
-    }
-
-    free(formas);
-}
-
-int carregadorVazio(PILHA carregador) {
-    return pilhaVazia(carregador);
 }

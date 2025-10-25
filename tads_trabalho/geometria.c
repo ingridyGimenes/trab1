@@ -1,13 +1,89 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "geometria.h"
-#include "/workspaces/trab1/formas/circulo.h"
-#include "/workspaces/trab1/formas/retangulo.h"
-#include "/workspaces/trab1/formas/linha.h"
-#include "/workspaces/trab1/formas/texto.h"
+#include <string.h>
 
-#define M_PI 3.14159
+#include "geometria.h"
+#include "../formas/circulo.h"
+#include "../formas/retangulo.h"
+#include "../formas/linha.h"
+#include "../formas/texto.h"
+#include "../formas/forma.h"
+
+// ---------- util local ----------
+
+static double clamp(double v, double lo, double hi) {
+    if (v < lo) return lo;
+    if (v > hi) return hi;
+    return v;
+}
+
+// ---------- interseções ----------
+
+static bool intersecaoCirculoCirculo(CIRCULO a, CIRCULO b) {
+    double dx = getXCirculo(a) - getXCirculo(b);
+    double dy = getYCirculo(a) - getYCirculo(b);
+    double dist2 = dx*dx + dy*dy;
+    double r = getRaioCirculo(a) + getRaioCirculo(b);
+    return dist2 <= r*r;
+}
+
+static bool intersecaoRetanguloRetangulo(RETANGULO A, RETANGULO B) {
+    double ax = getXRetangulo(A);
+    double ay = getYRetangulo(A);
+    double aw = getLarguraRetangulo(A);
+    double ah = getAlturaRetangulo(A);
+
+    double bx = getXRetangulo(B);
+    double by = getYRetangulo(B);
+    double bw = getLarguraRetangulo(B);
+    double bh = getAlturaRetangulo(B);
+
+    // AABBs se sobrepõem?
+    return !(ax + aw < bx || bx + bw < ax || ay + ah < by || by + bh < ay);
+}
+
+static bool intersecaoCirculoRetangulo(CIRCULO c, RETANGULO r) {
+    double cx = getXCirculo(c);
+    double cy = getYCirculo(c);
+    double cr = getRaioCirculo(c);
+
+    double rx = getXRetangulo(r);
+    double ry = getYRetangulo(r);
+    double rw = getLarguraRetangulo(r);
+    double rh = getAlturaRetangulo(r);
+
+    double closestX = clamp(cx, rx, rx + rw);
+    double closestY = clamp(cy, ry, ry + rh);
+
+    double dx = cx - closestX;
+    double dy = cy - closestY;
+    return (dx*dx + dy*dy) <= cr*cr;
+}
+
+static bool intersecaoLinhaLinha(LINHA A, LINHA B) {
+    // Segmento A: (x1,y1)-(x2,y2)
+    double x1 = getX1Linha(A), y1 = getY1Linha(A);
+    double x2 = getX2Linha(A), y2 = getY2Linha(A);
+    // Segmento B: (x3,y3)-(x4,y4)
+    double x3 = getX1Linha(B), y3 = getY1Linha(B);
+    double x4 = getX2Linha(B), y4 = getY2Linha(B);
+
+    double den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4);
+    if (den == 0.0) return false; // paralelos ou coincidentes (ignoramos coincidentes aqui)
+
+    double t = ((x1 - x3)*(y3 - y4) - (y1 - y3)*(x3 - x4)) / den;
+    double u = ((x1 - x3)*(y1 - y2) - (y1 - y3)*(x1 - x2)) / den;
+
+    return (t >= 0 && t <= 1 && u >= 0 && u <= 1);
+}
+
+// Heurística simples para texto: tratamos como um "ponto" grosso (10x10)
+static bool intersecaoTextoTexto(TEXTO A, TEXTO B) {
+    double ax = getXTexto(A), ay = getYTexto(A);
+    double bx = getXTexto(B), by = getYTexto(B);
+    return (fabs(ax - bx) < 10.0 && fabs(ay - by) < 10.0);
+}
 
 bool geometriaFormasIntersectam(FORMA A, FORMA B) {
     if (!A || !B) return false;
@@ -17,127 +93,84 @@ bool geometriaFormasIntersectam(FORMA A, FORMA B) {
     void* fA = objetoForma(A);
     void* fB = objetoForma(B);
 
-    // --- Círculo x Círculo ---
+    // c-c
     if (tA == 'c' && tB == 'c') {
-        double dx = getXCirculo(fA) - getXCirculo(fB);
-        double dy = getYCirculo(fA) - getYCirculo(fB);
-        double dist = sqrt(dx*dx + dy*dy);
-        return dist <= (getRaioCirculo(fA) + getRaioCirculo(fB));
+        return intersecaoCirculoCirculo((CIRCULO)fA, (CIRCULO)fB);
     }
-
-    // --- Retângulo x Retângulo ---
+    // r-r
     if (tA == 'r' && tB == 'r') {
-        double ax = get_cord_x_ret(fA);
-        double ay = get_cord_y_ret(fA);
-        double aw = get_width_ret(fA);
-        double ah = get_heigth_ret(fA);
-
-        double bx = get_cord_x_ret(fB);
-        double by = get_cord_y_ret(fB);
-        double bw = get_width_ret(fB);
-        double bh = get_heigth_ret(fB);
-
-        return !(ax + aw < bx || bx + bw < ax || ay + ah < by || by + bh < ay);
+        return intersecaoRetanguloRetangulo((RETANGULO)fA, (RETANGULO)fB);
     }
-
-    // --- Círculo x Retângulo ---
-    if ((tA == 'c' && tB == 'r') || (tA == 'r' && tB == 'c')) {
-        void* circulo = (tA == 'c') ? fA : fB;
-        void* ret = (tA == 'r') ? fA : fB;
-
-        double cx = getXCirculo(circulo);
-        double cy = getYCirculo(circulo);
-        double r = getRaioCirculo(circulo);
-
-        double rx = get_cord_x_ret(ret);
-        double ry = get_cord_y_ret(ret);
-        double rw = get_width_ret(ret);
-        double rh = get_heigth_ret(ret);
-
-        double closestX = fmax(rx, fmin(cx, rx + rw));
-        double closestY = fmax(ry, fmin(cy, ry + rh));
-
-        double dx = cx - closestX;
-        double dy = cy - closestY;
-
-        return (dx*dx + dy*dy) <= (r*r);
+    // c-r / r-c
+    if (tA == 'c' && tB == 'r') {
+        return intersecaoCirculoRetangulo((CIRCULO)fA, (RETANGULO)fB);
     }
-
-    // --- Linha x Linha ---
+    if (tA == 'r' && tB == 'c') {
+        return intersecaoCirculoRetangulo((CIRCULO)fB, (RETANGULO)fA);
+    }
+    // l-l
     if (tA == 'l' && tB == 'l') {
-        // Algoritmo de interseção de segmentos de linha
-        double x1 = get_codx1_linha(fA), y1 = get_cody1_linha(fA);
-        double x2 = get_codx2_linha(fA), y2 = get_cody2_linha(fA);
-        double x3 = get_codx1_linha(fB), y3 = get_cody1_linha(fB);
-        double x4 = get_codx2_linha(fB), y4 = get_cody2_linha(fB);
-
-        double den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4);
-        if (den == 0) return false; // paralelas ou coincidentes
-
-        double t = ((x1 - x3)*(y3 - y4) - (y1 - y3)*(x3 - x4)) / den;
-        double u = ((x1 - x3)*(y1 - y2) - (y1 - y3)*(x1 - x2)) / den;
-
-        return (t >= 0 && t <= 1 && u >= 0 && u <= 1);
+        return intersecaoLinhaLinha((LINHA)fA, (LINHA)fB);
     }
-
-    // --- Texto x Texto ---
+    // t-t (heurístico)
     if (tA == 't' && tB == 't') {
-        // simplificação: considera bounding box
-        double ax = get_codx_txt(fA);
-        double ay = get_cody_txt(fA);
-        double bx = get_codx_txt(fB);
-        double by = get_cody_txt(fB);
-
-        return (fabs(ax - bx) < 10 && fabs(ay - by) < 10);
+        return intersecaoTextoTexto((TEXTO)fA, (TEXTO)fB);
     }
 
+    // Outras combinações (texto com outros, linha com áreas) não tratadas
+    // Poderia-se expandir com bounding-box de texto e teste linha-retângulo etc.
     return false;
 }
+
+// ---------- área ----------
 
 double geometriaAreaForma(FORMA F) {
     if (!F) return 0.0;
     char t = tipoForma(F);
-    void* f = objetoForma(F);
+    void* o = objetoForma(F);
 
     switch (t) {
-        case 'c':
-            return M_PI * pow(getRaioCirculo(f), 2);
-        case 'r':
-            return get_width_ret(f) * get_heigth_ret(f);
+        case 'c': 
+            return calculaAreaCirculo(o);
+        
+        case 'r': 
+            return calculaAreaRetangulo(o);
+        
         case 't':
-            return 0.0; // Texto não tem área real
+              return calculaAreaTexto(o);
         case 'l':
-            return 0.0; // Linha também não
+            return calculaAreaLinha(o);
         default:
-            return 0.0;
+            return 0.0; // Sem área útil
     }
 }
+
+// ---------- clonagem + cores ----------
 
 FORMA geometriaClonaFormaComCoresTrocadas(FORMA F, int novoId) {
     if (!F) return NULL;
     char t = tipoForma(F);
-    void* f = objetoForma(F);
+    void* o = objetoForma(F);
 
     if (t == 'c') {
-        CIRCULO clone = clonaCirculo(f, novoId);
-        inverteCores_cir(clone);
+        CIRCULO clone = clonaCirculo((CIRCULO)o, novoId);
+        inverterCoresCirculo(clone);
         return criaForma('c', clone);
     }
-
     if (t == 'r') {
-        RETANGULO clone = clonaRetangulo(f, novoId);
-        inverteCores_ret(clone);
+        RETANGULO clone = clonaRetangulo((RETANGULO)o, novoId);
+        inverterCoresRetangulo(clone);
         return criaForma('r', clone);
     }
-
-    if (t == 'l') {
-        LINHA clone = clona_linha(f, novoId);
-        return criaForma('l', clone);
-    }
-
     if (t == 't') {
-        TEXTO clone = clona_texto(f, novoId);
+        TEXTO clone = clonaTexto((TEXTO)o, novoId);
+        inverterCoresTexto(clone);
         return criaForma('t', clone);
+    }
+    if (t == 'l') {
+        // linha não possui preenchimento/borda; apenas clonamos
+        LINHA clone = clonaLinha((LINHA)o, novoId);
+        return criaForma('l', clone);
     }
 
     return NULL;
@@ -145,20 +178,23 @@ FORMA geometriaClonaFormaComCoresTrocadas(FORMA F, int novoId) {
 
 void geometriaBordaDeBRecebeCorpDeA(FORMA A, FORMA B) {
     if (!A || !B) return;
+
     char tA = tipoForma(A);
     char tB = tipoForma(B);
+    void* oA = objetoForma(A);
+    void* oB = objetoForma(B);
 
-    void* fA = objetoForma(A);
-    void* fB = objetoForma(B);
+    const char* corp = NULL;
+    if (tA == 'c') corp = getCorPreenchimentoCirculo(oA);
+    else if (tA == 'r') corp = getCorPreenchimentoRetangulo(oA);
+    else if (tA == 't') corp = getCorPreenchimentoTexto(oA);
+    // linha não tem preenchimento → ignoramos
 
-    const char* corP = NULL;
-    if (tA == 'c') corP = getCorPreenchimentoCirculo(fA);
-    else if (tA == 'r') corP = get_corP_ret(fA);
-    else if (tA == 't') corP = get_corP_txt(fA);
+    if (!corp) return;
 
-    if (!corP) return;
-
-    if (tB == 'c') setCorBordaCirculo(fB, corP);
-    else if (tB == 'r') set_corB_ret(fB, (char*)corP);
-    else if (tB == 't') set_corB_txt(fB, (char*)corP);
+    // “Borda de B recebe corp de A”
+    if (tB == 'c') setCorBordaCirculo(oB, corp);
+    else if (tB == 'r') setCorBordaRetangulo(oB, corp);
+    else if (tB == 't') setCorBordaTexto(oB, corp);
+    else if (tB == 'l') setCorLinha(oB, corp); // para linha, usamos a cor da linha
 }

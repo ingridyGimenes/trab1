@@ -1,18 +1,9 @@
 #pragma once
-#include "pilha.h"
-#include "fila.h"
+#include "../tads_gerais/pilha.h"
+#include "../tads_gerais/fila.h"
 
-// Cria um novo disparador
-void inicializaDisparador(void);
+// Move formas do carregador (pilha) para a arena (fila)
+void dispararForma(PILHA carregador, FILA arena, int quantidade);
 
-// Dispara uma única forma do carregador para a arena
-void dispararForma(PILHA carregador, FILA arena);
-
-// Dispara todas as formas do carregador para a arena
+// Move todas as formas da pilha para a fila
 void dispararTudo(PILHA carregador, FILA arena);
-
-// Dispara de forma aleatória (se aplicável)
-void dispararAleatorio(PILHA carregador, FILA arena);
-
-// Retorna se o carregador ainda possui formas
-int carregadorVazio(PILHA carregador);

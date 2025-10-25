@@ -20,3 +20,4 @@ void setCorLinha(LINHA l, const char* cor);
 
 LINHA clonaLinha(LINHA l, int novoId);
 void destruirLinha(LINHA l);
+double calculaAreaLinha(LINHA l);

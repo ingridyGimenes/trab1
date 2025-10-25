@@ -1,0 +1,62 @@
+# ========= Config =========
+PROJECT := trab1
+CC      := gcc
+
+WARN    := -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-qual \
+           -Wstrict-prototypes -Wmissing-prototypes
+CSTD    := -std=c11
+OPT     := -O2
+
+# DEBUG=1 -> build com -g e -O0
+DEBUG ?= 0
+ifeq ($(DEBUG),1)
+  CFLAGS := $(CSTD) $(WARN) -g3 -O0
+else
+  CFLAGS := $(CSTD) $(WARN) $(OPT)
+endif
+
+INCLUDES := -I. -Iformas -Itads_gerais -Itads_trabalho
+
+# ========= Layout =========
+BINDIR := bin
+OBJDIR := build
+TARGET := $(BINDIR)/$(PROJECT)
+
+# pegue todos .c das pastas e também um eventual main.c na raiz
+SRC := $(wildcard formas/*.c) \
+       $(wildcard tads_gerais/*.c) \
+       $(wildcard tads_trabalho/*.c) \
+       $(wildcard *.c)
+
+# mapeia para objetos dentro de build/ preservando subpastas
+OBJ := $(patsubst %.c,$(OBJDIR)/%.o,$(SRC))
+
+# ========= Regras =========
+.PHONY: all clean run debug print
+
+all: $(TARGET)
+
+$(TARGET): $(OBJ)
+	@mkdir -p $(BINDIR)
+	$(CC) $(OBJ) -lm -o $@
+
+# regra genérica para compilar qualquer .c em qualquer subpasta
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+run: $(TARGET)
+	./$(TARGET)
+
+debug:
+	$(MAKE) DEBUG=1
+
+print:
+	@echo "SRC = $(SRC)"
+	@echo "OBJ = $(OBJ)"
+	@echo "TARGET = $(TARGET)"
+	@echo "CFLAGS = $(CFLAGS)"
+	@echo "INCLUDES = $(INCLUDES)"
+
+clean:
+	rm -rf $(OBJDIR) $(BINDIR)

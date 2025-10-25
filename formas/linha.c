@@ -68,3 +68,14 @@ void destruirLinha(LINHA l) {
     free(li->cor);
     free(li);
 }
+
+
+double calculaAreaLinha(LINHA l) {
+    double x1 = getX1Linha(l);
+    double y1 = getY1Linha(l);
+    double x2 = getX2Linha(l);
+    double y2 = getY2Linha(l);
+
+    double comprimento = sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
+    return 2.0 * comprimento;
+}

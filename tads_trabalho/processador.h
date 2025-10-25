@@ -1,24 +1,23 @@
 #pragma once
-#include "/workspaces/trab1/tads_gerais/fila.h"
-#include "/workspaces/trab1/tads_gerais/pilha.h"
-#include "/workspaces/trab1/formas/forma.h"
+#include "../tads_gerais/fila.h"
+#include "../tads_gerais/pilha.h"
+#include "../formas/forma.h"
 
 typedef struct processador* PROCESSADOR;
 
-// Cria e inicializa um novo processador
+// cria / destrói
 PROCESSADOR criaProcessador(void);
+void destruirProcessador(PROCESSADOR p);
 
-// Processa colisões na arena e pontua
+// registra disparos (ex.: pd, dsp, shft)
+void registrarDisparo(PROCESSADOR p, int qtd);
+
+// processa colisões da arena e joga sobreviventes/gerados no chão
+// retorna a área total esmagada nesta rodada
 double processarArena(PROCESSADOR p, FILA arena, FILA chao);
 
-// Estatísticas
+// métricas
 double getPontuacaoTotal(PROCESSADOR p);
 int getTotalClones(PROCESSADOR p);
 int getTotalEsmagadas(PROCESSADOR p);
 int getTotalDisparos(PROCESSADOR p);
-
-// Atualiza contadores
-void registrarDisparo(PROCESSADOR p);
-
-// Libera memória
-void destruirProcessador(PROCESSADOR p);

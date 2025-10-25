@@ -2,23 +2,26 @@
 
 typedef void* RETANGULO;
 
-void* cria_retangulo(int i, double x, double y, double w, double h, char* cor_b, char* cor_p);
+RETANGULO criaRetangulo(int id, double x, double y, double largura, double altura, const char* corB, const char* corP);
 
-int le_id_ret(RETANGULO r);
-double get_cord_x_ret(RETANGULO r);
-double get_cord_y_ret(RETANGULO r);
-double get_width_ret(RETANGULO r);
-double get_heigth_ret(RETANGULO r);
-char* get_corB_ret(RETANGULO r);
-char* get_corP_ret(RETANGULO r);
-double calcula_area_ret(RETANGULO r);
+int getIdRetangulo(RETANGULO r);
+double getXRetangulo(RETANGULO r);
+double getYRetangulo(RETANGULO r);
+double getLarguraRetangulo(RETANGULO r);
+double getAlturaRetangulo(RETANGULO r);
+const char* getCorBordaRetangulo(RETANGULO r);
+const char* getCorPreenchimentoRetangulo(RETANGULO r);
+
 void setIdRetangulo(RETANGULO r, int id);
-void set_cordX_ret(RETANGULO r, double cordX);
-void set_cordY_ret(RETANGULO r, double cordY);
-void set_height_ret(RETANGULO r, double H);
-void set_width_ret(RETANGULO r, double W);
-void set_corB_ret(RETANGULO r, char* corB);
-void set_corP_ret(RETANGULO r, char* corP);
-void exclui_retangulo(RETANGULO r);
+void setXRetangulo(RETANGULO r, double x);
+void setYRetangulo(RETANGULO r, double y);
+void setLarguraRetangulo(RETANGULO r, double w);
+void setAlturaRetangulo(RETANGULO r, double h);
+void setCorBordaRetangulo(RETANGULO r, const char* corB);
+void setCorPreenchimentoRetangulo(RETANGULO r, const char* corP);
+
+double calculaAreaRetangulo(RETANGULO r);
 RETANGULO clonaRetangulo(RETANGULO r, int novoId);
-void inverteCores_ret(RETANGULO c);
+void inverterCoresRetangulo(RETANGULO r);
+
+void destruirRetangulo(RETANGULO r);

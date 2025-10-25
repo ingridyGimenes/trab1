@@ -1,22 +1,25 @@
 #pragma once
 
-typedef void* CIRCLE;
+typedef void* CIRCULO;
 
-CIRCLE criaCirculoInterno(int id, double x, double y, double r, const char* corb, const char* corp);
+CIRCULO criaCirculo(int id, double x, double y, double r, const char* corB, const char* corP);
 
-int getIdCirculo(CIRCLE c);
-double getXCirculo(CIRCLE c);
-double getYCirculo(CIRCLE c);
-double getRaioCirculo(CIRCLE c);
-const char* getCorBordaCirculo(CIRCLE c);
-const char* getCorPreenchimentoCirculo(CIRCLE c);
-void setIdCirculo(CIRCLE c, int id);
-void setYCirculo(CIRCLE c, double y);
-void setXCirculo(CIRCLE c, double x);
-void setCorBordaCirculo(CIRCLE c, const char* novaCor);
-void setCorPreenchimentoCirculo(CIRCLE c, const char* novaCor);
-void setRCirculo(CIRCLE c, double r);
-double areaCirculo(CIRCLE c);
-CIRCLE clonaCirculo(CIRCLE c, int novoId);
-void inverteCores_cir(CIRCLE c);
-void destruir_circulo(CIRCLE c);
+int getIdCirculo(CIRCULO c);
+double getXCirculo(CIRCULO c);
+double getYCirculo(CIRCULO c);
+double getRaioCirculo(CIRCULO c);
+const char* getCorBordaCirculo(CIRCULO c);
+const char* getCorPreenchimentoCirculo(CIRCULO c);
+
+void setIdCirculo(CIRCULO c, int id);
+void setXCirculo(CIRCULO c, double x);
+void setYCirculo(CIRCULO c, double y);
+void setRaioCirculo(CIRCULO c, double r);
+void setCorBordaCirculo(CIRCULO c, const char* novaCor);
+void setCorPreenchimentoCirculo(CIRCULO c, const char* novaCor);
+
+double calculaAreaCirculo(CIRCULO c);
+CIRCULO clonaCirculo(CIRCULO c, int novoId);
+void inverterCoresCirculo(CIRCULO c);
+
+void destruirCirculo(CIRCULO c);

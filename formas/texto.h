@@ -1,34 +1,40 @@
 #pragma once
+
 typedef void* TEXTO;
-typedef void* Estilo;
+typedef void* ESTILO;
 
-Estilo cria_estilo(const char* family, const char* weight, const char* size);
+ESTILO criaEstilo(const char* family, const char* weight, const char* size);
+void destruirEstilo(ESTILO e);
 
-void   destruir_estilo(Estilo e);
-char*  getFamily(Estilo e);
-char*  getWeight(Estilo e);
-char*  getSize(Estilo e);
-void   setFamily(Estilo e, const char* familia);
-void   setWeight(Estilo e, const char* wgt);
-void   setSize(Estilo e, const char* sz);
+const char* getFamily(ESTILO e);
+const char* getWeight(ESTILO e);
+const char* getSize(ESTILO e);
 
-TEXTO cria_texto(int id, double x, double y, const char *cor_b, const char *cor_p, char ancora, const char *conteudo);
+void setFamily(ESTILO e, const char* family);
+void setWeight(ESTILO e, const char* weight);
+void setSize(ESTILO e, const char* size);
 
-void destruir_texto(TEXTO t);
-int     get_id_txt(TEXTO t);
-double  get_codx_txt(TEXTO t);
-double  get_cody_txt(TEXTO t);
-char*   get_corB_txt(TEXTO t);
-char*   get_corP_txt(TEXTO t);
-char    get_ancora_txt(TEXTO t);
-char*   get_txto_txt(TEXTO t);
-int     get_len_txt(TEXTO t);
-void set_codx_txt(TEXTO t, double x);
-void set_cody_txt(TEXTO t, double y);
-void set_corB_txt(TEXTO t, const char* cor_b);
-void set_corP_txt(TEXTO t, const char* cor_p);
-void set_ancora_txt(TEXTO t, char ancora);
-void set_txto_txt(TEXTO t, const char* cont);
-double calcula_area_txt(TEXTO t);
-TEXTO  clona_texto(TEXTO t, int novoId);
-void   inverte_cores_txt(TEXTO t);
+TEXTO criaTexto(int id, double x, double y, const char* corB, const char* corP, char ancora, const char* conteudo, ESTILO estilo);
+void destruirTexto(TEXTO t);
+
+int getIdTexto(TEXTO t);
+double getXTexto(TEXTO t);
+double getYTexto(TEXTO t);
+const char* getCorBordaTexto(TEXTO t);
+const char* getCorPreenchimentoTexto(TEXTO t);
+char getAncoraTexto(TEXTO t);
+const char* getConteudoTexto(TEXTO t);
+ESTILO getEstiloTexto(TEXTO t);
+
+void setIdTexto(TEXTO t, int id);
+void setXTexto(TEXTO t, double x);
+void setYTexto(TEXTO t, double y);
+void setCorBordaTexto(TEXTO t, const char* corB);
+void setCorPreenchimentoTexto(TEXTO t, const char* corP);
+void setAncoraTexto(TEXTO t, char ancora);
+void setConteudoTexto(TEXTO t, const char* conteudo);
+void setEstiloTexto(TEXTO t, ESTILO estilo);
+
+double calculaAreaTexto(TEXTO t);
+TEXTO clonaTexto(TEXTO t, int novoId);
+void inverterCoresTexto(TEXTO t);

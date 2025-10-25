@@ -1,20 +1,18 @@
 #pragma once
 #include <stdbool.h>
 
-typedef void* FORMA;  // Wrapper opaco
+typedef void* FORMA;
 
-// Criação / acesso
-FORMA cria_forma(char tipo, void* objeto);
-char  tipo_forma(FORMA f);
-void* objeto_forma(FORMA f);
+// Criação e destruição de forma genérica
+FORMA criaForma(char tipo, void* objeto);
+char tipoForma(FORMA f);
+void* objetoForma(FORMA f);
+void destruirForma(FORMA f);
 
-// Interseção e área
-bool   formas_intersectam(FORMA A, FORMA B);
-double area_forma(FORMA F);
+// Operações geométricas genéricas
+bool formasIntersectam(FORMA A, FORMA B);
+double areaForma(FORMA F);
 
-// Regras de interação
-void   borda_de_B_recebe_corp_de_A(FORMA A, FORMA B);
-FORMA  clona_forma_com_cores_trocadas(FORMA A, int novoId);
-
-// Liberação
-void destruir_forma(FORMA F);
+// Operações de cor e clonagem
+void bordaDeBRecebeCorpDeA(FORMA A, FORMA B);
+FORMA clonaFormaComCoresTrocadas(FORMA A, int novoId);

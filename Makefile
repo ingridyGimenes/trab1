@@ -18,12 +18,9 @@ CSTD    := -std=c99
 WARN    := -Wall -Wextra
 SEC     := -fstack-protector-all
 OPT     := -O2
-# Define M_PI se faltar no math.h (corrige "M_PI undefined")
+
 MATHPI  := -DM_PI=3.14159265358979323846
-# Se seu TEXTO não tem estilo, descomente a linha abaixo:
-# TEXTMODE := -DTEXTO_SEM_ESTILO
-# Se seu TEXTO tem estilo, descomente esta:
-# TEXTMODE := -DTEXTO_TEM_ESTILO
+
 
 CFLAGS  := $(CSTD) $(WARN) $(SEC) $(OPT) $(MATHPI) $(TEXTMODE)
 

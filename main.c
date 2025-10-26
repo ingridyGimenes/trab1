@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
         return 2;
     }
 
-    int nformas = geo_ler(fgeo, chao);
+    int nformas = geo_executar(fgeo, chao, NULL);
     (void)nformas; // pode ser útil para logs
     fclose(fgeo);
 
@@ -173,9 +173,9 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Erro ao criar SVG inicial '%s': %s\n", svg_inicial_path, strerror(errno));
         return 3;
     }
-    svg_begin(fsvg_ini, 1000.0, 1000.0);
-    svg_draw_chao(fsvg_ini, chao);
-    svg_end(fsvg_ini);
+    SVG s0 = svg_begin(fsvg_ini, 0.0, 0.0, 1000.0, 1000.0, 1000.0, 1000.0);
+    svg_draw_fila(s0, chao);
+    svg_end(s0);
     fclose(fsvg_ini);
 
     // Se não há .qry, finaliza aqui
@@ -225,9 +225,9 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Erro ao criar SVG final '%s': %s\n", out_svg_path, strerror(errno));
         return 6;
     }
-    svg_begin(fsvg_final, 1000.0, 1000.0);
-    svg_draw_chao(fsvg_final, chao);
-    svg_end(fsvg_final);
+    SVG sctx = svg_begin(fsvg_final, 0.0, 0.0, 1000.0, 1000.0, 1000.0, 1000.0);
+    svg_draw_fila(sctx, chao);
+    svg_end(sctx);
     fclose(fsvg_final);
 
     return 0;

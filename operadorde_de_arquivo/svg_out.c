@@ -18,16 +18,16 @@ static char get_tipo(FORMA F) {
 static double C_x(void* C) { /* getXCirculo(C) */ extern double getXCirculo(void*); return getXCirculo(C); }
 static double C_y(void* C) { extern double getYCirculo(void*); return getYCirculo(C); }
 static double C_r(void* C) { extern double getRaioCirculo(void*); return getRaioCirculo(C); }
-static const char* C_corb(void* C){ extern const char* getCorbCirculo(void*); return getCorbCirculo(C); }
-static const char* C_corp(void* C){ extern const char* getCorpCirculo(void*); return getCorpCirculo(C); }
+static const char* C_corb(void* C){ extern const char* getCorBordaCirculo(void*); return getCorBordaCirculo(C); }
+static const char* C_corp(void* C){ extern const char* getCorPreenchimentoCirculo(void*); return getCorPreenchimentoCirculo(C); }
 
 /* ------ Retângulo ------ */
 static double R_x(void* R) { extern double getXRetangulo(void*); return getXRetangulo(R); }
 static double R_y(void* R) { extern double getYRetangulo(void*); return getYRetangulo(R); }
 static double R_w(void* R) { extern double getLarguraRetangulo(void*); return getLarguraRetangulo(R); }
 static double R_h(void* R) { extern double getAlturaRetangulo(void*); return getAlturaRetangulo(R); }
-static const char* R_corb(void* R){ extern const char* getCorbRetangulo(void*); return getCorbRetangulo(R); }
-static const char* R_corp(void* R){ extern const char* getCorpRetangulo(void*); return getCorpRetangulo(R); }
+static const char* R_corb(void* R){ extern const char* getCorBordaRetangulo(void*); return getCorBordaRetangulo(R); }
+static const char* R_corp(void* R){ extern const char* getCorPreenchimentoRetangulo(void*); return getCorPreenchimentoRetangulo(R); }
 
 /* ------ Linha ------ */
 static double L_x1(void* L){ extern double getX1Linha(void*); return getX1Linha(L); }
@@ -41,8 +41,8 @@ static double T_x(void* T){ extern double getXTexto(void*); return getXTexto(T);
 static double T_y(void* T){ extern double getYTexto(void*); return getYTexto(T); }
 static char   T_anc(void* T){ extern char getAncoraTexto(void*); return getAncoraTexto(T); }
 static const char* T_txt(void* T){ extern const char* getConteudoTexto(void*); return getConteudoTexto(T); }
-static const char* T_corb(void* T){ extern const char* getCorbTexto(void*); return getCorbTexto(T); }
-static const char* T_corp(void* T){ extern const char* getCorpTexto(void*); return getCorpTexto(T); }
+static const char* T_corb(void* T){ extern const char* getCorBordaTexto(void*); return getCorBordaTexto(T); }
+static const char* T_corp(void* T){ extern const char* getCorPreenchimentoTexto(void*); return getCorPreenchimentoTexto(T); }
 /* Se você tiver estilo (family/weight/size), adicione aqui e no draw. */
 
 /* Pega ponteiro interno do objeto conforme seu TAD de forma */
@@ -155,19 +155,19 @@ void svg_draw_forma(SVG s, FORMA F) {
     }
 }
 
+
 void svg_draw_fila(SVG s, FILA f) {
     if (!s || !f) return;
-    /* iterar SEM consumir: se seu TAD FILA não tem iterador, você pode
-       copiar os ponteiros para um vetor temporário; aqui assumimos um
-       "for-each" simples por convenção: */
-    extern int tamanho_fila(FILA);
-    extern void* pega_elemento_fila(FILA, int idx); /* TODO: adapte: função que lê sem remover */
-    int n = tamanho_fila(f);
+    int n = tamanhoFila(f);
     for (int i = 0; i < n; ++i) {
-        FORMA F = (FORMA)pega_elemento_fila(f, i); /* ajuste para sua API real */
-        if (F) svg_draw_forma(s, F);
+        void* elem = removeDaFila(f);
+        if (elem) {
+            svg_draw_forma(s, (FORMA)elem);
+            insereNaFila(f, elem);
+        }
     }
 }
+
 
 void svg_note_disparo(SVG s, double x0, double y0, double x1, double y1) {
     if (!s) return;

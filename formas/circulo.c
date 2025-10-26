@@ -82,10 +82,11 @@ void inverterCoresCirculo(CIRCULO c) {
     cir->cor_p = temp;
 }
 
-void destruirCirculo(CIRCULO c) {
-    Circulo* cir = (Circulo*)c;
-    if (!cir) return;
+void destruirCirculo(CIRCULO* c) {
+    if (!c || !*c) return;
+    Circulo* cir = (Circulo*)(*c);
     free(cir->cor_b);
     free(cir->cor_p);
     free(cir);
+    *c = NULL;
 }

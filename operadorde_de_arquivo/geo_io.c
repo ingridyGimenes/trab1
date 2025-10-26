@@ -14,6 +14,34 @@
 #include "../formas/linha.h"
 #include "../formas/texto.h"
 
+/* Wrappers para criar FORMA a partir dos TADs concretos */
+static FORMA mkFormaCirculo(int id, double x, double y, double r,
+                            const char* cor_b, const char* cor_p) {
+    CIRCULO c = criaCirculo(id, x, y, r, cor_b, cor_p);
+    return criaForma('c', c);
+}
+static FORMA mkFormaRetangulo(int id, double x, double y, double w, double h,
+                              const char* cor_b, const char* cor_p) {
+    RETANGULO r = criaRetangulo(id, x, y, w, h, cor_b, cor_p);
+    return criaForma('r', r);
+}
+static FORMA mkFormaLinha(int id, double x1, double y1, double x2, double y2,
+                          const char* cor) {
+    LINHA l = criaLinha(id, x1, y1, x2, y2, cor);
+    return criaForma('l', l);
+}
+static FORMA mkFormaTexto(int id, double x, double y,
+                          const char* cor_b, const char* cor_p, char ancora,
+                          const char* txto,
+                          const char* family, const char* weight, const char* size) {
+    ESTILO est = criaEstilo(family, weight, size);
+    TEXTO t = criaTexto(id, x, y, cor_b, cor_p, ancora, txto, est);
+    return criaForma('t', t);
+}
+
+
+/* Wrappers para criar FORMA a partir dos TADs concretos */
+/* Wrappers para criar FORMA a partir dos TADs concretos */
 /* ------------------------------------------------------------------
    ADAPTADORES para criação das formas
    Mapeie estes prototypes para as SUAS funções reais.
@@ -24,22 +52,22 @@
    ------------------------------------------------------------------ */
 
 /* Círculo: c i x y r corb corp */
-extern FORMA criaCirculo(int id, double x, double y, double r,
-                           const char* cor_b, const char* cor_p);
-/* Retângulo: r i x y w h corb corp */
-extern FORMA criaRetangulo(int id, double x, double y, double w, double h,
-                             const char* cor_b, const char* cor_p);
-/* Linha: l i x1 y1 x2 y2 cor */
-extern FORMA criaLinha(int id, double x1, double y1, double x2, double y2,
-                         const char* cor);
-/* Texto: t i x y corb corp a txto
-   + estilo corrente (ts): family, weight, size
-   Se o seu criador de texto NÃO usa estilo, ignore os params extras. */
-extern FORMA criaTexto(int id, double x, double y,
-                         const char* cor_b, const char* cor_p, char ancora,
-                         const char* texto,
-                         const char* fFamily, const char* fWeight, const char* fSize);
-
+/* extern FORMA criaCirculo(int id, double x, double y, double r,
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
+// removed broken extern
                          
 static char* next_tok(char **cursor) {
     char *s = *cursor;
@@ -157,9 +185,9 @@ int geo_executar(FILE *geo, FILA fila_chao, FILE *txt_out) {
                 if (txt_out) fprintf(txt_out, "[.geo:%ld] Erro em 'c': i x y r corb corp\n", lineno);
                 continue;
             }
-            FORMA F = criaCirculo(id, x, y, r, corb, corp);
+            FORMA F = mkFormaCirculo(id, x, y, r, corb, corp);
             if (F) {
-                add_na_fila(fila_chao, F);
+                insereNaFila(fila_chao, F);
                 if (txt_out) fprintf(txt_out, "c: id=%d (%.2f,%.2f) r=%.2f %s/%s\n", id, x, y, r, corb, corp);
             }
             instrucoes++;
@@ -175,7 +203,7 @@ int geo_executar(FILE *geo, FILA fila_chao, FILE *txt_out) {
                 if (txt_out) fprintf(txt_out, "[.geo:%ld] Erro em 'r': i x y w h corb corp\n", lineno);
                 continue;
             }
-            FORMA F = criaRetangulo(id, x, y, w, h, corb, corp);
+            FORMA F = mkFormaRetangulo(id, x, y, w, h, corb, corp);
             if (F) {
                 insereNaFila(fila_chao, F);
                 if (txt_out) fprintf(txt_out, "r: id=%d (%.2f,%.2f) w=%.2f h=%.2f %s/%s\n", id, x, y, w, h, corb, corp);
@@ -193,7 +221,7 @@ int geo_executar(FILE *geo, FILA fila_chao, FILE *txt_out) {
                 if (txt_out) fprintf(txt_out, "[.geo:%ld] Erro em 'l': i x1 y1 x2 y2 cor\n", lineno);
                 continue;
             }
-            FORMA F = criaLinha(id, x1, y1, x2, y2, cor);
+            FORMA F = mkFormaLinha(id, x1, y1, x2, y2, cor);
             if (F) {
                 insereNaFila(fila_chao, F);
                 if (txt_out) fprintf(txt_out, "l: id=%d (%.2f,%.2f)-(%.2f,%.2f) cor=%s\n", id, x1,y1,x2,y2,cor);
@@ -235,7 +263,7 @@ int geo_executar(FILE *geo, FILA fila_chao, FILE *txt_out) {
 
             /* Se quiser remover aspas externas, faça aqui (opcional) */
 
-            FORMA F = criaTexto(id, x, y, corb, corp, ancora, texto,
+            FORMA F = mkFormaTexto(id, x, y, corb, corp, ancora, texto,
                                   cur.family, cur.weight, cur.size);
             if (F) {
                 insereNaFila(fila_chao, F);

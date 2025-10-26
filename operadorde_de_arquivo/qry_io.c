@@ -64,7 +64,7 @@ static PILHA reg_get_or_make_carr(int id) {
     int k = idx(id);
     if (g_carrs[k].usado && g_carrs[k].id == id) return g_carrs[k].p;
 
-    PILHA p = cria_pilha(); /* seu TAD de PILHA */
+    PILHA p = criaPilha(); /* seu TAD de PILHA */
     g_carrs[k].usado = 1;
     g_carrs[k].id    = id;
     g_carrs[k].p     = p;
@@ -99,7 +99,7 @@ int qry_executar(FILE *qry, FILA fila_chao, FILE *txt_out) {
     registry_reset();
 
     /* Arena temporária (formas disparadas aguardando o calc) */
-    FILA arena = cria_fila();
+    FILA arena = criaFila();
 
     /* PROCESSADOR centraliza pontuação/estatísticas do round */
     PROCESSADOR proc = criaProcessador();
@@ -247,7 +247,7 @@ int qry_executar(FILE *qry, FILA fila_chao, FILE *txt_out) {
         /* ------------------ calc ------------------ */
         if (strcmp(cmd, "calc") == 0) {
             if (txt_out) {
-                fprintf(txt_out, "calc: processando %d forma(s) na arena...\n", tamanho_fila(arena));
+                fprintf(txt_out, "calc: processando %d forma(s) na arena...\n", tamanhoFila(arena));
             }
             /* Processa colisões/clonagem/pontuação e desloca de volta ao chão */
             double esmagada_round = processarArena(proc, arena, fila_chao);

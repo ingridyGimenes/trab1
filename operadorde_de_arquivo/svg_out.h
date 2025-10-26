@@ -3,55 +3,26 @@
 #include "../tads_gerais/fila.h"
 #include "../formas/forma.h"
 
-/**
- * @brief Inicia um documento SVG definindo a viewport.
- *
- * @param svg    Ponteiro para arquivo aberto para escrita do SVG.
- * @param width  Largura sugerida da viewport.
- * @param height Altura sugerida da viewport.
- *
- * @note A função escreve o cabeçalho e a tag raiz do SVG.
- */
-void svg_begin(FILE* svg, double width, double height);
+/* Contexto simples para escrever SVG */
+typedef struct svg_ctx* SVG;
 
-/**
- * @brief Finaliza o documento SVG.
- *
- * @param svg Ponteiro para o arquivo SVG.
- *
- * @note Fecha a tag raiz do SVG e garante término apropriado do documento.
- */
-void svg_end(FILE* svg);
+/* Abre um SVG com viewport/coord (minX,minY,maxX,maxY). 
+   Se width/height <= 0, usa (maxX-minX) e (maxY-minY). */
+SVG svg_begin(FILE* out, double minX, double minY, double maxX, double maxY,
+              double width, double height);
 
-/**
- * @brief Desenha todas as formas presentes na fila "chao" sem alterar a ordem final.
- *
- * @param svg  Ponteiro para o arquivo SVG.
- * @param chao Fila contendo as formas a serem desenhadas.
- *
- * @details Para preservar a ordem, cada elemento é desenhado, removido da frente
- *          e reenfileirado ao final, mantendo a sequência original ao término.
- */
-void svg_draw_chao(FILE* svg, FILA chao);
+/* Desenha todas as formas que estão na FILA (sem consumir a fila). */
+void svg_draw_fila(SVG s, FILA f);
 
-/**
- * @brief Desenha um asterisco vermelho em uma coordenada.
- *
- * @param svg  Ponteiro para o arquivo SVG.
- * @param x    Coordenada x do centro do asterisco.
- * @param y    Coordenada y do centro do asterisco.
- * @param size Comprimento dos “braços” do asterisco.
- */
-void svg_mark_asterisk(FILE* svg, double x, double y, double size);
+/* Desenha UMA forma (útil se você quer granularidade). */
+void svg_draw_forma(SVG s, FORMA F);
 
-/**
- * @brief Desenha uma caixa de marcação de disparo (tracejada) e, opcionalmente, um rótulo.
- *
- * @param svg   Ponteiro para o arquivo SVG.
- * @param x     Coordenada x do canto inferior esquerdo da caixa.
- * @param y     Coordenada y do canto inferior esquerdo da caixa.
- * @param w     Largura da caixa.
- * @param h     Altura da caixa.
- * @param label Texto do rótulo; se for NULL, nada é rotulado.
- */
-void svg_mark_shot_box(FILE* svg, double x, double y, double w, double h, const char* label);
+/* Anota “dimensões do disparo” (para dsp com flag v).
+   Desenha uma seta do (x0,y0) ao (x1,y1) e escreve rótulos. */
+void svg_note_disparo(SVG s, double x0, double y0, double x1, double y1);
+
+/* Marca um esmagamento com um asterisco vermelho no ponto (x,y). */
+void svg_mark_esmagado(SVG s, double x, double y);
+
+/* Fecha o SVG (escreve </svg>) */
+void svg_end(SVG s);

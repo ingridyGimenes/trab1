@@ -1,218 +1,257 @@
-#include <stdio.h>
+#include "geo_io.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#include "geo_io.h"
-
-// ======== INCLUDES dos módulos de formas ========
-#include "../formas/forma.h"
-#include "../formas/retangulo.h"
-#include "../formas/circulo.h"
-#include "../formas/linha.h"
-#include "../formas/texto.h"   // <- usa criaTexto(...) + criaEstilo(...)
-
-// ======== INCLUDES de TADs gerais ========
+/* ------------------------------------------------------------------
+   Dependências dos seus TADs
+   ------------------------------------------------------------------ */
 #include "../tads_gerais/fila.h"
+#include "../formas/forma.h"
+#include "../formas/circulo.h"
+#include "../formas/retangulo.h"
+#include "../formas/linha.h"
+#include "../formas/texto.h"
 
-// ============================================================================
-//                            ADAPTE AQUI (MACROS)
-// ============================================================================
-// 1) ENFILEIRAR NA FILA "CHÃO"
-// Troque se o nome da sua função de fila for diferente:
-#ifndef ENFILEIRAR
-#define ENFILEIRAR(FILA_CHAO, FORMA_OBJ) filaEnfileira((FILA_CHAO), (FORMA_OBJ))
-#endif
+/* ------------------------------------------------------------------
+   ADAPTADORES para criação das formas
+   Mapeie estes prototypes para as SUAS funções reais.
+   A ideia é que cada criador já retorne um FORMA pronto.
+   Se no seu projeto cada forma possui um .h específico
+   (circulo.h, retangulo.h, linha.h, texto.h) com assinaturas
+   diferentes, troque aqui pelos nomes reais.
+   ------------------------------------------------------------------ */
 
-// 2) FACTORIES DE FORMAS
-// Se suas factories já retornam FORMA, mantenha. Se retornam tipos específicos,
-// troque por wrappers (ex.: formaDeRetangulo(criaRetangulo(...))).
+/* Círculo: c i x y r corb corp */
+extern FORMA criaCirculo(int id, double x, double y, double r,
+                           const char* cor_b, const char* cor_p);
+/* Retângulo: r i x y w h corb corp */
+extern FORMA criaRetangulo(int id, double x, double y, double w, double h,
+                             const char* cor_b, const char* cor_p);
+/* Linha: l i x1 y1 x2 y2 cor */
+extern FORMA criaLinha(int id, double x1, double y1, double x2, double y2,
+                         const char* cor);
+/* Texto: t i x y corb corp a txto
+   + estilo corrente (ts): family, weight, size
+   Se o seu criador de texto NÃO usa estilo, ignore os params extras. */
+extern FORMA criaTexto(int id, double x, double y,
+                         const char* cor_b, const char* cor_p, char ancora,
+                         const char* texto,
+                         const char* fFamily, const char* fWeight, const char* fSize);
 
-// CÍRCULO
-#define FORMA_CIRCULO(id, x, y, r, corB, corP) criaCirculo((id), (x), (y), (r), (corB), (corP))
+                         
+static char* next_tok(char **cursor) {
+    char *s = *cursor;
+    // pula espaços em branco no começo
+    while (*s && isspace((unsigned char)*s)) s++;
+    // se chegou ao final da string, acabou
+    if (!*s) { *cursor = s; return NULL; }
 
-// RETÂNGULO
-#define FORMA_RETANGULO(id, x, y, w, h, corB, corP) criaRetangulo((id), (x), (y), (w), (h), (corB), (corP))
+    // marca o início do token
+    char *start = s;
 
-// LINHA
-#define FORMA_LINHA(id, x1, y1, x2, y2, cor) criaLinha((id), (x1), (y1), (x2), (y2), (cor))
+    // anda até o próximo espaço ou fim da string
+    while (*s && !isspace((unsigned char)*s)) s++;
 
-// TEXTO — ADAPTADO À SUA API:
-// Assinatura real: criaTexto(int id, double x, double y, const char* corB, const char* corP,
-//                             char ancora, const char* conteudo, ESTILO estilo)
-//
-// Vamos criar um ESTILO na hora via criaEstilo(fFamily, fWeight, fSizeString).
-// (Seu ESTILO usa strings; portanto guardaremos size como string, ex.: "12")
-#define FORMA_TEXTO__USANDO_ESTILO(id, x, y, corB, corP, ancora, conteudo, fFam, fWgt, fSzStr) \
-    criaTexto((id), (x), (y), (corB), (corP), (ancora), (conteudo), criaEstilo((fFam),(fWgt),(fSzStr)))
+    // se não acabou a string, termina o token com '\0'
+    if (*s) {
+        *s = '\0';
+        s++;
+    }
 
-// ============================================================================
-//                     IMPLEMENTAÇÃO DO PARSER DE .GEO
-// ============================================================================
-
-typedef struct {
-    char fontFamily[16];  // "sans", "serif", "cursive"
-    char fontWeight[4];   // "n", "b", "b+", "l"
-    char fontSize[16];    // guardado como STRING, ex.: "12"
-} TextoEstilo;
-
-static void estilo_texto_default(TextoEstilo* st) {
-    strcpy(st->fontFamily, "sans");
-    strcpy(st->fontWeight, "n");
-    strcpy(st->fontSize,  "12");
+    // atualiza o cursor e retorna o token encontrado
+    *cursor = s;
+    return start;
 }
 
-static char* rtrim(char* s) {
+/* ------------------------------------------------------------------
+   Utilidades de parsing
+   ------------------------------------------------------------------ */
+
+static char* next_tok(char **cursor) {
+    char *s = *cursor;
+    while (*s && isspace((unsigned char)*s)) s++;
+    if (!*s) { *cursor = s; return NULL; }
+    char *start = s;
+    while (*s && !isspace((unsigned char)*s)) s++;
+    if (*s) { *s = '\0'; s++; }
+    *cursor = s;
+    return start;
+}
+
+static void rstrip(char *s) {
     size_t n = strlen(s);
-    while (n && isspace((unsigned char)s[n-1])) { s[--n] = '\0'; }
-    return s;
-}
-static char* ltrim(char* s) {
-    while (*s && isspace((unsigned char)*s)) ++s;
-    return s;
+    while (n && (s[n-1]=='\n' || s[n-1]=='\r' || isspace((unsigned char)s[n-1]))) s[--n] = '\0';
 }
 
-static bool parse_linha_geo(const char* orig, long lineno, FILA chao, TextoEstilo* estilo) {
-    char buf[8192];
-    strncpy(buf, orig, sizeof(buf)-1);
-    buf[sizeof(buf)-1] = '\0';
+/* Mantém o estilo de texto corrente definido por 'ts' */
+typedef struct {
+    char family[16];  /* sans|serif|cursive */
+    char weight[8];   /* n|b|b+|l */
+    char size[16];    /* ex.: "12", "14px" etc. */
+} TextStyle;
 
-    const char* p = orig;
-
-    // ignora vazias/comentários
-    while (*p && isspace((unsigned char)*p)) ++p;
-    if (*p == '\0' || *p == '#') return true;
-
-    char cmd[8] = {0};
-    int consumed = 0;
-    if (sscanf(p, " %7s %n", cmd, &consumed) != 1) {
-        fprintf(stderr, "[.geo:%ld] Erro: comando ausente.\n", lineno);
-        return false;
-    }
-    p += consumed;
-
-    if (strcmp(cmd, "c") == 0) {
-        int id; double x, y, r; char corb[64], corp[64];
-        if (sscanf(p, " %d %lf %lf %lf %63s %63s", &id, &x, &y, &r, corb, corp) != 6) {
-            fprintf(stderr, "[.geo:%ld] Erro em 'c': esperado: c i x y r corb corp\n", lineno);
-            return false;
-        }
-        FORMA f = FORMA_CIRCULO(id, x, y, r, corb, corp);
-        ENFILEIRAR(chao, f);
-        return true;
-    }
-    else if (strcmp(cmd, "r") == 0) {
-        int id; double x, y, w, h; char corb[64], corp[64];
-        if (sscanf(p, " %d %lf %lf %lf %lf %63s %63s", &id, &x, &y, &w, &h, corb, corp) != 7) {
-            fprintf(stderr, "[.geo:%ld] Erro em 'r': esperado: r i x y w h corb corp\n", lineno);
-            return false;
-        }
-        FORMA f = FORMA_RETANGULO(id, x, y, w, h, corb, corp);
-        ENFILEIRAR(chao, f);
-        return true;
-    }
-    else if (strcmp(cmd, "l") == 0) {
-        int id; double x1, y1, x2, y2; char cor[64];
-        if (sscanf(p, " %d %lf %lf %lf %lf %63s", &id, &x1, &y1, &x2, &y2, cor) != 6) {
-            fprintf(stderr, "[.geo:%ld] Erro em 'l': esperado: l i x1 y1 x2 y2 cor\n", lineno);
-            return false;
-        }
-        FORMA f = FORMA_LINHA(id, x1, y1, x2, y2, cor);
-        ENFILEIRAR(chao, f);
-        return true;
-    }
-    else if (strcmp(cmd, "t") == 0) {
-        // t i x y corb corp a txto  (txto vai até o fim da linha)
-        int id; double x, y; char corb[64], corp[64]; char ancora;
-        if (sscanf(p, " %d %lf %lf %63s %63s %c", &id, &x, &y, corb, corp, &ancora) != 6) {
-            fprintf(stderr, "[.geo:%ld] Erro em 't': esperado: t i x y corb corp a txto\n", lineno);
-            return false;
-        }
-
-        // localizar início do 'txto' na linha inteira:
-        char* line = buf;
-        {   // pular "t"
-            char tmp[8]; int off = 0;
-            if (sscanf(line, " %7s %n", tmp, &off) == 1) line += off;
-        }
-        for (int k = 0; k < 6; ++k) {
-            while (*line && isspace((unsigned char)*line)) ++line;
-            while (*line && !isspace((unsigned char)*line)) ++line;
-        }
-        line = ltrim(rtrim(line));  // texto até o fim
-        if (!line) line = "";
-
-        // cria ESTILO string-based (sua API)
-        // estilo->fontFamily, ->fontWeight, ->fontSize (ex.: "12")
-        FORMA f = FORMA_TEXTO__USANDO_ESTILO(
-            id, x, y, corb, corp, ancora, line,
-            estilo->fontFamily, estilo->fontWeight, estilo->fontSize
-        );
-        ENFILEIRAR(chao, f);
-        return true;
-    }
-    else if (strcmp(cmd, "ts") == 0) {
-        // ts fFamily fWeight fSize   (no seu ESTILO, tudo são strings)
-        char ff[16], fw[4], fs[16];
-        if (sscanf(p, " %15s %3s %15s", ff, fw, fs) != 3) {
-            // muitos .geo usam inteiro para size; aceitaremos int também:
-            int fsi;
-            if (sscanf(p, " %15s %3s %d", ff, fw, &fsi) == 3) {
-                snprintf(fs, sizeof(fs), "%d", fsi);
-            } else {
-                fprintf(stderr, "[.geo:%ld] Erro em 'ts': esperado: ts fFamily fWeight fSize\n", lineno);
-                return false;
-            }
-        }
-        // normalizações simples
-        if (strcmp(ff, "sans") && strcmp(ff, "serif") && strcmp(ff, "cursive")) {
-            fprintf(stderr, "[.geo:%ld] Aviso: fontFamily '%s' desconhecida. Usando 'sans'.\n", lineno, ff);
-            strcpy(ff, "sans");
-        }
-        if (strcmp(fw, "n") && strcmp(fw, "b") && strcmp(fw, "b+") && strcmp(fw, "l")) {
-            fprintf(stderr, "[.geo:%ld] Aviso: fontWeight '%s' desconhecido. Usando 'n'.\n", lineno, fw);
-            strcpy(fw, "n");
-        }
-        // atualiza estado
-        strncpy(estilo->fontFamily, ff, sizeof(estilo->fontFamily)-1);
-        estilo->fontFamily[sizeof(estilo->fontFamily)-1] = '\0';
-        strncpy(estilo->fontWeight, fw, sizeof(estilo->fontWeight)-1);
-        estilo->fontWeight[sizeof(estilo->fontWeight)-1] = '\0';
-        strncpy(estilo->fontSize, fs, sizeof(estilo->fontSize)-1);
-        estilo->fontSize[sizeof(estilo->fontSize)-1] = '\0';
-        return true;
-    }
-    else {
-        fprintf(stderr, "[.geo:%ld] Erro: comando '%s' desconhecido.\n", lineno, cmd);
-        return false;
-    }
+static void ts_default(TextStyle *ts) {
+    strcpy(ts->family, "sans");
+    strcpy(ts->weight, "n");
+    strcpy(ts->size,   "12");
 }
 
-bool geo_ler_stream(FILE* fin, FILA chao) {
-    if (!fin || !chao) return false;
+/* Normaliza tokens do ts (opcional) */
+static void ts_apply(TextStyle *ts, const char* fam, const char* wei, const char* siz) {
+    if (fam && *fam)  strncpy(ts->family, fam,  sizeof(ts->family)-1),  ts->family[sizeof(ts->family)-1] = '\0';
+    if (wei && *wei)  strncpy(ts->weight, wei,  sizeof(ts->weight)-1),  ts->weight[sizeof(ts->weight)-1] = '\0';
+    if (siz && *siz)  strncpy(ts->size,   siz,  sizeof(ts->size)-1),    ts->size[sizeof(ts->size)-1] = '\0';
+}
 
-    TextoEstilo estilo;
-    estilo_texto_default(&estilo);
+/* ------------------------------------------------------------------
+   Execução do .geo
+   ------------------------------------------------------------------ */
 
-    char line[8192];
+int geo_executar(FILE *geo, FILA fila_chao, FILE *txt_out) {
+    if (!geo || !fila_chao) return 0;
+
+    TextStyle cur = {0};
+    ts_default(&cur);
+
+    int instrucoes = 0;
+    char buf[2048];
     long lineno = 0;
-    while (fgets(line, sizeof(line), fin)) {
-        ++lineno;
-        if (!parse_linha_geo(line, lineno, chao, &estilo)) {
-            return false;
-        }
-    }
-    return true;
-}
 
-bool geo_ler_arquivo(const char* caminho_geo, FILA chao) {
-    if (!caminho_geo || !chao) return false;
-    FILE* f = fopen(caminho_geo, "r");
-    if (!f) {
-        perror("geo_ler_arquivo: fopen");
-        return false;
+    while (fgets(buf, sizeof(buf), geo)) {
+        lineno++;
+        rstrip(buf);
+
+        /* pular vazias e comentários (linha iniciando com #) */
+        char *p = buf;
+        while (*p && isspace((unsigned char)*p)) p++;
+        if (!*p || *p=='#') continue;
+
+        char *curp = p;
+        char *cmd = next_tok(&curp);
+        if (!cmd) continue;
+
+        /* ---------------- ts fFamily fWeight fSize ---------------- */
+        if (strcmp(cmd, "ts") == 0) {
+            char *fam = next_tok(&curp);
+            char *wei = next_tok(&curp);
+            char *siz = next_tok(&curp);
+
+            if (!fam || !wei || !siz) {
+                if (txt_out) fprintf(txt_out, "[.geo:%ld] Erro em 'ts': esperado fFamily fWeight fSize\n", lineno);
+                continue;
+            }
+            ts_apply(&cur, fam, wei, siz);
+            if (txt_out) fprintf(txt_out, "ts: family=%s weight=%s size=%s\n", cur.family, cur.weight, cur.size);
+            instrucoes++;
+            continue;
+        }
+
+        /* ---------------- c i x y r corb corp ---------------- */
+        if (strcmp(cmd, "c") == 0) {
+            int id; double x,y,r;
+            char corb[128], corp[128];
+            int rscan = sscanf(curp, "%d %lf %lf %lf %127s %127s", &id, &x, &y, &r, corb, corp);
+            if (rscan != 6) {
+                if (txt_out) fprintf(txt_out, "[.geo:%ld] Erro em 'c': i x y r corb corp\n", lineno);
+                continue;
+            }
+            FORMA F = criaCirculo(id, x, y, r, corb, corp);
+            if (F) {
+                add_na_fila(fila_chao, F);
+                if (txt_out) fprintf(txt_out, "c: id=%d (%.2f,%.2f) r=%.2f %s/%s\n", id, x, y, r, corb, corp);
+            }
+            instrucoes++;
+            continue;
+        }
+
+        /* ---------------- r i x y w h corb corp ---------------- */
+        if (strcmp(cmd, "r") == 0) {
+            int id; double x,y,w,h;
+            char corb[128], corp[128];
+            int rscan = sscanf(curp, "%d %lf %lf %lf %lf %127s %127s", &id, &x, &y, &w, &h, corb, corp);
+            if (rscan != 7) {
+                if (txt_out) fprintf(txt_out, "[.geo:%ld] Erro em 'r': i x y w h corb corp\n", lineno);
+                continue;
+            }
+            FORMA F = criaRetangulo(id, x, y, w, h, corb, corp);
+            if (F) {
+                insereNaFila(fila_chao, F);
+                if (txt_out) fprintf(txt_out, "r: id=%d (%.2f,%.2f) w=%.2f h=%.2f %s/%s\n", id, x, y, w, h, corb, corp);
+            }
+            instrucoes++;
+            continue;
+        }
+
+        /* ---------------- l i x1 y1 x2 y2 cor ---------------- */
+        if (strcmp(cmd, "l") == 0) {
+            int id; double x1,y1,x2,y2;
+            char cor[128];
+            int rscan = sscanf(curp, "%d %lf %lf %lf %lf %127s", &id, &x1, &y1, &x2, &y2, cor);
+            if (rscan != 6) {
+                if (txt_out) fprintf(txt_out, "[.geo:%ld] Erro em 'l': i x1 y1 x2 y2 cor\n", lineno);
+                continue;
+            }
+            FORMA F = criaLinha(id, x1, y1, x2, y2, cor);
+            if (F) {
+                insereNaFila(fila_chao, F);
+                if (txt_out) fprintf(txt_out, "l: id=%d (%.2f,%.2f)-(%.2f,%.2f) cor=%s\n", id, x1,y1,x2,y2,cor);
+            }
+            instrucoes++;
+            continue;
+        }
+
+        /* ---------------- t i x y corb corp a txto ----------------
+           OBS: txto vai ATÉ O FIM DA LINHA (pode ter espaços) */
+        if (strcmp(cmd, "t") == 0) {
+            int id; double x,y;
+            char corb[128], corp[128];
+            char ancora = 0;
+
+            /* Pegar tokens i, x, y, corb, corp, a via next_tok, e o resto da linha é o texto */
+            char *tok_id = next_tok(&curp);
+            char *tok_x  = next_tok(&curp);
+            char *tok_y  = next_tok(&curp);
+            char *tok_cb = next_tok(&curp);
+            char *tok_cp = next_tok(&curp);
+            char *tok_a  = next_tok(&curp);
+
+            if (!tok_id || !tok_x || !tok_y || !tok_cb || !tok_cp || !tok_a) {
+                if (txt_out) fprintf(txt_out, "[.geo:%ld] Erro em 't': i x y corb corp a txto\n", lineno);
+                continue;
+            }
+
+            id     = atoi(tok_id);
+            x      = atof(tok_x);
+            y      = atof(tok_y);
+            strncpy(corb, tok_cb, sizeof(corb)-1); corb[sizeof(corb)-1] = '\0';
+            strncpy(corp, tok_cp, sizeof(corp)-1); corp[sizeof(corp)-1] = '\0';
+            ancora = tok_a[0] ? tok_a[0] : 'i';
+
+            /* O restante da linha é o texto, possivelmente com espaços */
+            while (*curp && isspace((unsigned char)*curp)) curp++;
+            char *texto = curp; /* pode ser vazio, mas é permitido */
+
+            /* Se quiser remover aspas externas, faça aqui (opcional) */
+
+            FORMA F = criaTexto(id, x, y, corb, corp, ancora, texto,
+                                  cur.family, cur.weight, cur.size);
+            if (F) {
+                insereNaFila(fila_chao, F);
+                if (txt_out) {
+                    fprintf(txt_out, "t: id=%d (%.2f,%.2f) a=%c %s/%s txt=\"%s\" [style %s,%s,%s]\n",
+                            id, x, y, ancora, corb, corp, texto, cur.family, cur.weight, cur.size);
+                }
+            }
+            instrucoes++;
+            continue;
+        }
+
+        /* comando desconhecido */
+        if (txt_out) fprintf(txt_out, "[.geo:%ld] Comando desconhecido '%s' — ignorado.\n", lineno, cmd);
     }
-    bool ok = geo_ler_stream(f, chao);
-    fclose(f);
-    return ok;
+
+    if (txt_out) fprintf(txt_out, "Resumo(.geo): instrucoes=%d\n", instrucoes);
+    return instrucoes;
 }

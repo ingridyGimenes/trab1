@@ -8,14 +8,21 @@
 #include "../tads_gerais/fila.h"
 #include "../tads_gerais/pilha.h"
 
+#include "../operadorde_de_arquivo/svg_out.h"
 #include "../formas/forma.h"
 #include "../tads_trabalho/processador.h"
 #include "../tads_trabalho/geometria.h"
 #include "../tads_trabalho/disparador.h"  /* usa o seu TAD DISPARADOR e APIs pd/atch/shft/dsp/rjd/lc */
 
-
-
 #define MAX_REG 8192  /* ajuste se precisar */
+
+/* ===================== NOVO: contexto SVG vinculado ao .qry ===================== */
+static SVG g_svg = NULL; /* injetado pelo main.c */
+
+void qry_bind_svg(SVG sctx) {
+    g_svg = sctx;
+}
+/* ================================================================================ */
 
 typedef struct {
     int usado;
@@ -89,10 +96,16 @@ static char* next_tok(char **cursor) {
     return start;
 }
 
+/* ===================== NOVO: callback p/ marcar esmagados no SVG ===================== */
+static void cb_svg_mark(double x, double y, void *ctx) {
+    SVG s = (SVG)ctx;
+    if (s) svg_mark_esmagado(s, x, y);
+}
+/* ================================================================================ */
+
 /* -----------------------------------------------------------
    Execução dos comandos .qry delegando aos seus TADs
    ----------------------------------------------------------- */
-
 int qry_executar(FILE *qry, FILA fila_chao, FILE *txt_out) {
     if (!qry || !fila_chao) return 0;
 
@@ -103,6 +116,10 @@ int qry_executar(FILE *qry, FILA fila_chao, FILE *txt_out) {
 
     /* PROCESSADOR centraliza pontuação/estatísticas do round */
     PROCESSADOR proc = criaProcessador();
+
+    /* ===================== NOVO: registra callback de marcação ===================== */
+    processador_set_mark_cb(proc, cb_svg_mark, g_svg);
+    /* ============================================================================== */
 
     int instrucoes = 0;
 
@@ -135,8 +152,6 @@ int qry_executar(FILE *qry, FILA fila_chao, FILE *txt_out) {
             DISPARADOR d = reg_get_or_make_disp(d_id);
             setPosicaoDisparador(d, x, y);            /* TAD DISPARADOR */
             if (txt_out) fprintf(txt_out, "pd: disparador %d -> (%.2f, %.2f)\n", d_id, x, y);
-            /* Se quiser contar instrução em PROCESSADOR, você pode:
-               registrarDisparo(proc, 0);  // ou ter API específica para 'comando executado' */
             instrucoes++;
             continue;
         }
@@ -209,9 +224,18 @@ int qry_executar(FILE *qry, FILA fila_chao, FILE *txt_out) {
             if (!d) {
                 if (txt_out) fprintf(txt_out, "dsp: disparador %d inexistente\n", d_id);
             } else {
-                dsp(d, dx, dy, visualizar, arena);    /* TAD DISPARADOR (posiciona e enfileira na arena) */
-                /* Se o seu PROCESSADOR contar disparos aqui, avise-o: */
+                /* dispara e enfileira na arena */
+                dsp(d, dx, dy, visualizar, arena);
                 registrarDisparo(proc, 1);
+
+                /* ===================== NOVO: anotação visual no SVG ===================== */
+                if (visualizar && g_svg) {
+                    double xD, yD;
+                    getPosicaoDisparador(d, &xD, &yD);
+                    svg_note_disparo(g_svg, xD, yD, xD + dx, yD + dy);
+                }
+                /* ======================================================================== */
+
                 if (txt_out) {
                     fprintf(txt_out, "dsp: d=%d -> (dx=%.2f, dy=%.2f)%s\n",
                             d_id, dx, dy, visualizar ? " [v]" : "");
@@ -232,11 +256,7 @@ int qry_executar(FILE *qry, FILA fila_chao, FILE *txt_out) {
             if (!d) {
                 if (txt_out) fprintf(txt_out, "rjd: disparador %d inexistente\n", d_id);
             } else {
-                /* O seu TAD já executa a sequência shft+dsp até esgotar, enfileirando na arena */
                 rjd(d, side, dx, dy, ix, iy, arena);
-                /* Não sei se seu rjd já contabiliza “disparos”; para garantir, podemos estimar
-                   pelo que entrou na arena antes/depois — mas vamos apenas registrar "evento" aqui: */
-                /* registrarDisparo(proc, ???);  -> deixe o TAD ou o calc consolidarem */
                 if (txt_out) fprintf(txt_out, "rjd: d=%d lado=%c base(%.2f,%.2f) inc(%.2f,%.2f)\n",
                                      d_id, side, dx, dy, ix, iy);
             }

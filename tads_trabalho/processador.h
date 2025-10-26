@@ -1,71 +1,41 @@
 #pragma once
-#include "../tads_gerais/fila.h"
-#include "../tads_gerais/pilha.h"
-#include "../formas/forma.h"
+
+#include "../tads_gerais/fila.h"   // para o tipo FILA
+#include "../tads_gerais/pilha.h"  // (se não usar aqui, pode remover)
+#include "../formas/forma.h"       // para o tipo FORMA (apenas referências)
 
 /**
  * @typedef PROCESSADOR
- * @brief Tipo opaco para representar o processador responsável por registrar disparos,
- *        processar colisões e acumular estatísticas de jogo.
+ * Tipo opaco que representa o processador (estatísticas + regras de colisão).
  */
 typedef struct processador* PROCESSADOR;
 
-/**
- * @brief Cria uma nova instância de processador.
- * @return Ponteiro para o processador criado.
- */
-PROCESSADOR criaProcessador(void);
+/** Callback para marcar visualmente (ex.: asterisco no SVG) o ponto de esmagamento. */
+typedef void (*PROC_MARK_CB)(double x, double y, void *ctx);
 
 /**
- * @brief Libera todos os recursos associados ao processador.
- * @param p Ponteiro para o processador.
+ * Liga/desliga o callback de marcação. O módulo .qry injeta o contexto do SVG via ctx.
  */
+void processador_set_mark_cb(PROCESSADOR p, PROC_MARK_CB cb, void *ctx);
+
+/** Cria/destrói o processador. */
+PROCESSADOR criaProcessador(void);
 void destruirProcessador(PROCESSADOR p);
 
-/**
- * @brief Registra a ocorrência de disparos para fins estatísticos.
- * @param p Ponteiro para o processador.
- * @param qtd Quantidade de disparos efetuados.
- */
+/** Estatísticas de disparo. */
 void registrarDisparo(PROCESSADOR p, int qtd);
 
 /**
- * @brief Processa colisões entre as formas presentes na arena e atualiza pontuação e estatísticas.
- *
- * @param p Ponteiro para o processador.
- * @param arena Fila com as formas que foram disparadas.
- * @param chao  Fila onde as formas sobreviventes ou geradas serão colocadas após o processamento.
- * @return Área total esmagada nesta rodada.
- *
- * @note Formas esmagadas contribuem para a pontuação total.
- * @note Clones e mudanças de cor são aplicados conforme regras de colisão.
+ * Processa a arena (pares I,J), aplicando as regras do PDF:
+ * - Se colide e área(I) < área(J): I é esmagado (pontua e é destruído; J volta ao chão).
+ * - Se colide e área(I) > área(J): borda(J) recebe corp(I); ambos voltam; clona(I) com cores trocadas.
+ * - Áreas iguais ou sem colisão: ambos voltam ao chão.
+ * Retorna a área esmagada nesta rodada.
  */
 double processarArena(PROCESSADOR p, FILA arena, FILA chao);
 
-/**
- * @brief Retorna a pontuação total acumulada.
- * @param p Ponteiro para o processador.
- * @return Pontuação total.
- */
+/** Getters de estatísticas acumuladas. */
 double getPontuacaoTotal(PROCESSADOR p);
-
-/**
- * @brief Retorna o total de formas clonadas.
- * @param p Ponteiro para o processador.
- * @return Número de clones.
- */
-int getTotalClones(PROCESSADOR p);
-
-/**
- * @brief Retorna o total de formas esmagadas.
- * @param p Ponteiro para o processador.
- * @return Número de formas esmagadas.
- */
-int getTotalEsmagadas(PROCESSADOR p);
-
-/**
- * @brief Retorna o total de disparos registrados.
- * @param p Ponteiro para o processador.
- * @return Número total de disparos.
- */
-int getTotalDisparos(PROCESSADOR p);
+int     getTotalClones(PROCESSADOR p);
+int     getTotalEsmagadas(PROCESSADOR p);
+int     getTotalDisparos(PROCESSADOR p);

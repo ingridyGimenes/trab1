@@ -18,7 +18,18 @@ struct processador {
     int totalClones;
     int totalEsmagadas;
     int totalDisparos;
+
+    /* callback para marcar asterisco no SVG do .qry */
+    PROC_MARK_CB mark_cb;
+    void *mark_ctx;
 };
+
+/* setter do callback (chamado pelo qry_io.c) */
+void processador_set_mark_cb(PROCESSADOR p, PROC_MARK_CB cb, void *ctx) {
+    if (!p) return;
+    p->mark_cb = cb;
+    p->mark_ctx = ctx;
+}
 
 // ---------- helpers internos ----------
 
@@ -47,9 +58,11 @@ PROCESSADOR criaProcessador(void) {
         exit(1);
     }
     p->pontuacaoTotal = 0.0;
-    p->totalClones = 0;
+    p->totalClones    = 0;
     p->totalEsmagadas = 0;
-    p->totalDisparos = 0;
+    p->totalDisparos  = 0;
+    p->mark_cb        = NULL;  /* inicializa callback vazio */
+    p->mark_ctx       = NULL;
     return p;
 }
 
@@ -69,12 +82,15 @@ double processarArena(PROCESSADOR p, FILA arena, FILA chao) {
     if (filaVazia(arena)) return 0.0;
 
     double areaEsmagadaRodada = 0.0;
+
+    /* dica do PDF: manter “maior código” para clonar — aqui usamos uma base simples */
     int proximoIdClone = 10000; // base para IDs de clones
 
-    // pega a primeira forma
+    /* pega a primeira forma (I) */
     FORMA f1 = removeDaFila(arena);
 
     while (!filaVazia(arena)) {
+        /* pega a segunda forma (J) do par */
         FORMA f2 = removeDaFila(arena);
 
         if (geometriaFormasIntersectam(f1, f2)) {
@@ -82,58 +98,82 @@ double processarArena(PROCESSADOR p, FILA arena, FILA chao) {
             double a2 = geometriaAreaForma(f2);
 
             if (a1 < a2) {
-                // f1 esmagada, f2 sobrevive
+                /* f1 é esmagada; f2 sobrevive e volta ao chão */
                 areaEsmagadaRodada += a1;
                 p->totalEsmagadas++;
 
-                insereNaFila(chao, f2);   // sobrevivente volta ao chão
-                destruirFormaDeep(f1);    // destrói wrapper + objeto concreto
+                /* >>> NOVO: marca a posição da forma esmagada no SVG do .qry */
+                if (p->mark_cb) {
+                    double xi, yi;
+                    geometriaAncoraDaForma(f1, &xi, &yi);  /* âncora do círculo/retângulo/texto; ponto médio se linha */
+                    p->mark_cb(xi, yi, p->mark_ctx);
+                }
+
+                insereNaFila(chao, f2);   /* sobrevivente volta ao chão */
+                destruirFormaDeep(f1);    /* destruímos a forma esmagada */
+
+                /* próximo par começa da cabeça da arena */
+                if (!filaVazia(arena))
+                    f1 = removeDaFila(arena);
+                else
+                    f1 = NULL;
+
+                continue; /* já lidamos com esse par */
             }
             else if (a1 > a2) {
-                // f2 esmagada, f1 sobrevive; borda de f2 recebe corp de f1
-                areaEsmagadaRodada += a2;
-                p->totalEsmagadas++;
+                /* f2 NÃO é destruída: borda de f2 recebe corp de f1; ambos voltam;
+                   cria-se um CLONE de f1 (cores trocadas) e entra após I e J. */
 
                 geometriaBordaDeBRecebeCorpDeA(f1, f2);
 
-                // ambos vão ao chão
+                /* ambos voltam ao chão (na mesma ordem relativa) */
                 insereNaFila(chao, f1);
                 insereNaFila(chao, f2);
 
-                // cria clone de f1 com cores invertidas
+                /* cria clone de f1 com cores invertidas */
                 FORMA clone = geometriaClonaFormaComCoresTrocadas(f1, proximoIdClone++);
                 if (clone) {
                     insereNaFila(chao, clone);
                     p->totalClones++;
                 }
 
-                // prepara o próximo par: novo f1
+                /* próximo par: novo f1 da arena, se houver */
                 if (!filaVazia(arena))
                     f1 = removeDaFila(arena);
                 else
                     f1 = NULL;
 
-                continue; // já tratou o emparelhamento
+                continue;
             }
             else {
-                // mesma área → ninguém esmagado
+                /* mesma área: ninguém é destruído; ambos voltam ao chão */
                 insereNaFila(chao, f1);
                 insereNaFila(chao, f2);
+
+                /* próximo f1 */
+                if (!filaVazia(arena))
+                    f1 = removeDaFila(arena);
+                else
+                    f1 = NULL;
+
+                continue;
             }
         } else {
-            // sem colisão → ambos voltam para o chão
+            /* sem colisão: ambos voltam ao chão, ordem relativa mantida */
             insereNaFila(chao, f1);
             insereNaFila(chao, f2);
-        }
 
-        // pega próximo f1
-        if (!filaVazia(arena))
-            f1 = removeDaFila(arena);
-        else
-            f1 = NULL;
+            /* próximo f1 */
+            if (!filaVazia(arena))
+                f1 = removeDaFila(arena);
+            else
+                f1 = NULL;
+
+            continue;
+        }
     }
 
-    // se ficou alguém desemparelhado como f1, devolve ao chão
+    /* se sobrou um f1 desemparelhado, devolve ao chão */
     if (f1) insereNaFila(chao, f1);
 
     p->pontuacaoTotal += areaEsmagadaRodada;

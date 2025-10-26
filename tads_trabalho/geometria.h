@@ -3,39 +3,45 @@
 #include "../formas/forma.h"
 
 /**
- * @brief Verifica se duas formas geométricas se intersectam.
- *
- * @param A Ponteiro para a primeira forma.
- * @param B Ponteiro para a segunda forma.
- * @return true se as formas se intersectarem; false caso contrário.
+ * Verifica se duas formas geométricas se intersectam.
+ * Regras de interseção implementadas:
+ *  - c–c, r–r, c–r
+ *  - l–l
+ *  - Texto tratado como segmento horizontal de comprimento 10*|t|:
+ *      âncora 'i': [ (x,y) .. (x+cl,y) ]
+ *      âncora 'f': [ (x-cl,y) .. (x,y) ]
+ *      âncora 'm': [ (x-cl/2,y) .. (x+cl/2,y) ]
+ *    Suporta t–t (seg–seg), t–l (seg–seg), t–r (seg–ret), t–c (seg–círc).
  */
 bool geometriaFormasIntersectam(FORMA A, FORMA B);
 
 /**
- * @brief Calcula a área de uma forma genérica.
- *
- * @param F Ponteiro para a forma.
- * @return Valor da área da forma.
- *
- * @note Para linhas e textos, a área segue as convenções:
- *       - Linha: 2.0 * comprimento
- *       - Texto: 20.0 * número de caracteres.
+ * Calcula a área de uma forma genérica.
+ * Convenções do projeto:
+ *  - Círculo: π r²
+ *  - Retângulo: w * h
+ *  - Linha: 2.0 * comprimento
+ *  - Texto: 20.0 * número de caracteres
  */
 double geometriaAreaForma(FORMA F);
 
 /**
- * @brief Cria um clone de uma forma com as cores de borda e preenchimento invertidas.
- *
- * @param F Ponteiro para a forma original.
- * @param novoId Identificador a ser atribuído ao clone.
- * @return Ponteiro para a forma clonada com cores invertidas.
+ * Cria um clone de uma forma com as cores de borda e preenchimento invertidas.
+ * Para linha (que não tem preenchimento), apenas clona.
  */
 FORMA geometriaClonaFormaComCoresTrocadas(FORMA F, int novoId);
 
 /**
- * @brief Faz a cor de borda de B receber a cor de preenchimento de A.
- *
- * @param A Ponteiro para a forma fonte (cor de preenchimento).
- * @param B Ponteiro para a forma destino (cor de borda).
+ * Faz a cor de borda de B receber a cor de preenchimento de A.
+ * (Para linha, usa-se a cor da linha.)
  */
 void geometriaBordaDeBRecebeCorpDeA(FORMA A, FORMA B);
+
+/**
+ * Retorna a "âncora" da forma para marcação no SVG:
+ *  - Círculo: centro
+ *  - Retângulo: canto inferior esquerdo (âncora)
+ *  - Texto: sua âncora (x,y)
+ *  - Linha: ponto médio
+ */
+void geometriaAncoraDaForma(FORMA f, double *x, double *y);

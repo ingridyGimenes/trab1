@@ -12,57 +12,7 @@
 #include "../formas/texto.h"
 
 
-/* ===========================================================
-   ADAPTAÇÃO DE APIS (caso nomes difiram nos seus TADs)
-   -----------------------------------------------------------
-   Se seus getters tiverem nomes diferentes, ajuste APENAS
-   esta seção.
-   =========================================================== */
 
-/* ---- CÍRCULO ----
-   Esperado:
-     int    getIdCirculo(CIRCULO);
-     double getXCirculo(CIRCULO), getYCirculo(CIRCULO);
-     double getRaioCirculo(CIRCULO);
-     const char* getCorbCirculo(CIRCULO);
-     const char* getCorpCirculo(CIRCULO);
-*/
-
-/* ---- RETÂNGULO ----
-   Esperado:
-     int    getIdRetangulo(RETANGULO);
-     double getXRetangulo(RETANGULO), getYRetangulo(RETANGULO);
-     double getLarguraRetangulo(RETANGULO), getAlturaRetangulo(RETANGULO);
-     const char* getCorbRetangulo(RETANGULO);
-     const char* getCorpRetangulo(RETANGULO);
-*/
-
-/* ---- LINHA ----
-   Esperado:
-     int    getIdLinha(LINHA);
-     double getX1Linha(LINHA), getY1Linha(LINHA);
-     double getX2Linha(LINHA), getY2Linha(LINHA);
-     const char* getCorLinha(LINHA);
-*/
-
-/* ---- TEXTO ----
-   Esperado (mínimo):
-     int    getIdTexto(TEXTO);
-     double getXTexto(TEXTO), getYTexto(TEXTO);
-     char   getAncoraTexto(TEXTO);     // 'i','m','f'
-     const char* getCorbTexto(TEXTO);
-     const char* getCorpTexto(TEXTO);
-     const char* getConteudoTexto(TEXTO);
-
-   Se seu TEXTO tem estilo (family/weight/size), ative -DTEXTO_TEM_ESTILO e forneça:
-     const char* getFamilyTexto(TEXTO);
-     const char* getWeightTexto(TEXTO); // "n","b","b+","l"
-     const char* getSizeTexto(TEXTO);   // "12", "14", etc
-*/
-
-/* ===========================================================
-   UTIL
-   =========================================================== */
 
 static void svg_printf(FILE* f, const char* fmt, ...) {
     va_list ap;
@@ -159,6 +109,7 @@ static void draw_texto(FILE* svg, TEXTO t) {
     xml_escape_into(conteudo ? conteudo : "", esc, sizeof esc);
 
 #ifdef TEXTO_TEM_ESTILO
+
     const char* fam = family_to_svg(getFamilyTexto(t));
     const char* w   = weight_to_svg(getWeightTexto(t));
     const char* sz  = getSizeTexto(t) ? getSizeTexto(t) : "12";
@@ -172,11 +123,8 @@ static void draw_texto(FILE* svg, TEXTO t) {
         "<text x=\"%.3f\" y=\"%.3f\" text-anchor=\"%s\" stroke=\"%s\" fill=\"%s\">%s</text>\n",
         x, y, anchor_to_text_anchor(a), corb?corb:"black", corp?corp:"black", esc);
 #endif
-}
 
-/* ===========================================================
-   DISPATCHER
-   =========================================================== */
+}
 
 static void draw_forma(FILE* svg, FORMA f) {
     if (!f) return;
@@ -193,9 +141,7 @@ static void draw_forma(FILE* svg, FORMA f) {
     }
 }
 
-/* ===========================================================
-   API PÚBLICA
-   =========================================================== */
+
 
 void svg_begin(FILE* svg, double width, double height) {
     if (!svg) return;

@@ -129,12 +129,12 @@ void setEstiloTexto(TEXTO t, ESTILO estilo) {
 }
 
 double calculaAreaTexto(TEXTO t) {
+    if (!t) return 0.0;
     Texto* txt = (Texto*)t;
-    size_t len = strlen(txt->conteudo);
-    double charWidth = 10.0;  // valor arbitrário
-    double lineHeight = 20.0; // idem
-    return len * charWidth * lineHeight;
+    const char* s = txt->conteudo ? txt->conteudo : "";
+    return 20.0 * (double)strlen(s);
 }
+
 
 TEXTO clonaTexto(TEXTO t, int novoId) {
     Texto* orig = (Texto*)t;

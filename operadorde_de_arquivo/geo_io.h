@@ -1,31 +1,32 @@
-#ifndef GEO_IO_H
-#define GEO_IO_H
-
+#pragma once
 #include <stdio.h>
+#include <stdbool.h>
 #include "../tads_gerais/fila.h"
-#include "../formas/forma.h"
 
 /**
- * @brief Lê um arquivo .geo já aberto e enfileira as formas criadas no "chão"
- *        na ordem em que aparecem.
+ * @file geo_io.h
+ * @brief Leitura do arquivo .geo e povoamento da Fila "chão" com as formas na ordem de criação.
  *
- * @details Reconhece os seguintes comandos:
- *          - c i x y r corb corp
- *          - r i x y w h corb corp
- *          - l i x1 y1 x2 y2 cor
- *          - t i x y corb corp a texto...  (o conteúdo do texto segue até o fim da linha)
- *          - ts fFamily fWeight fSize      (altera o estilo aplicado a textos subsequentes)
+ * Regras do PDF:
+ * - Comandos suportados: c, r, l, t, ts (estilo de texto para comandos t subsequentes).
+ * - A função NÃO desenha SVG; só lê e empilha as formas no "chão".
+ * - A ordem de enfileiramento é a ordem de aparição no .geo.
  *
- * @param geo        Ponteiro para o arquivo .geo já aberto em modo leitura.
- * @param fila_chao  Fila onde as formas lidas serão enfileiradas, preservando a ordem.
- *
- * @return Número total de formas carregadas.
- *
- * @note O estilo definido por "ts" permanece ativo até nova instrução "ts".
- * @note Cada forma criada é empacotada em uma FORMA e inserida em @p fila_chao.
- * @warning Em erros de parsing, mensagens são escritas em stderr e a leitura tenta prosseguir.
- * @warning IDs, cores e dimensões são assumidos válidos conforme especificação dos comandos.
+ * Erros de parsing são reportados via stderr com linha/coluna sempre que possível.
  */
-int geo_ler(FILE *geo, FILA fila_chao);
 
-#endif /* GEO_IO_H */
+/**
+ * @brief Lê um arquivo .geo do caminho informado e enfileira as formas na FILA chao.
+ * @param caminho_geo Caminho do arquivo .geo.
+ * @param chao FILA onde as formas serão enfileiradas (na ordem de criação).
+ * @return true em sucesso; false em erro (mensagens no stderr).
+ */
+bool geo_ler_arquivo(const char* caminho_geo, FILA chao);
+
+/**
+ * @brief Lê de um stream já aberto (.geo) e enfileira as formas na FILA chao.
+ * @param fin Stream aberto para leitura (não é fechado pela função).
+ * @param chao FILA onde as formas serão enfileiradas.
+ * @return true em sucesso; false em erro.
+ */
+bool geo_ler_stream(FILE* fin, FILA chao);

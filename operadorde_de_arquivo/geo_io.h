@@ -6,18 +6,25 @@
 #include "../formas/forma.h"
 
 /**
- * Lê um arquivo .geo já ABERTO e enfileira as formas criadas no "chão"
- * (na ordem em que aparecem no arquivo).
+ * @brief Lê um arquivo .geo já aberto e enfileira as formas criadas no "chão"
+ *        na ordem em que aparecem.
  *
- * Suporta comandos:
- *  - c i x y r corb corp
- *  - r i x y w h corb corp
- *  - l i x1 y1 x2 y2 cor
- *  - t i x y corb corp a texto... (texto vai até o fim da linha)
- *  - ts fFamily fWeight fSize (afeta textos subsequentes)
+ * @details Reconhece os seguintes comandos:
+ *          - c i x y r corb corp
+ *          - r i x y w h corb corp
+ *          - l i x1 y1 x2 y2 cor
+ *          - t i x y corb corp a texto...  (o conteúdo do texto segue até o fim da linha)
+ *          - ts fFamily fWeight fSize      (altera o estilo aplicado a textos subsequentes)
  *
- * Retorna: número de formas carregadas.
- * Em caso de erro de parsing, imprime no stderr e continua onde possível.
+ * @param geo        Ponteiro para o arquivo .geo já aberto em modo leitura.
+ * @param fila_chao  Fila onde as formas lidas serão enfileiradas, preservando a ordem.
+ *
+ * @return Número total de formas carregadas.
+ *
+ * @note O estilo definido por "ts" permanece ativo até nova instrução "ts".
+ * @note Cada forma criada é empacotada em uma FORMA e inserida em @p fila_chao.
+ * @warning Em erros de parsing, mensagens são escritas em stderr e a leitura tenta prosseguir.
+ * @warning IDs, cores e dimensões são assumidos válidos conforme especificação dos comandos.
  */
 int geo_ler(FILE *geo, FILA fila_chao);
 

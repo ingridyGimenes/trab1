@@ -3,26 +3,55 @@
 #include "../tads_gerais/fila.h"
 #include "../formas/forma.h"
 
-/* Inicia um SVG com viewport dado.
- * width/height são apenas hints; se não souber, use algo como 1000x1000.
+/**
+ * @brief Inicia um documento SVG definindo a viewport.
+ *
+ * @param svg    Ponteiro para arquivo aberto para escrita do SVG.
+ * @param width  Largura sugerida da viewport.
+ * @param height Altura sugerida da viewport.
+ *
+ * @note A função escreve o cabeçalho e a tag raiz do SVG.
  */
 void svg_begin(FILE* svg, double width, double height);
 
-/* Finaliza o arquivo SVG (fecha a tag raiz). */
+/**
+ * @brief Finaliza o documento SVG.
+ *
+ * @param svg Ponteiro para o arquivo SVG.
+ *
+ * @note Fecha a tag raiz do SVG e garante término apropriado do documento.
+ */
 void svg_end(FILE* svg);
 
-/* Desenha todas as FORMAS existentes na Fila `chao` SEM alterar sua ordem.
- * Para preservar a fila, a função remove cada elemento e re-enfileira ao final.
+/**
+ * @brief Desenha todas as formas presentes na fila "chao" sem alterar a ordem final.
+ *
+ * @param svg  Ponteiro para o arquivo SVG.
+ * @param chao Fila contendo as formas a serem desenhadas.
+ *
+ * @details Para preservar a ordem, cada elemento é desenhado, removido da frente
+ *          e reenfileirado ao final, mantendo a sequência original ao término.
  */
 void svg_draw_chao(FILE* svg, FILA chao);
 
-/* Anota um asterisco vermelho (p.ex., posição de forma esmagada).
- * Tamanho controla o “comprimento” dos braços do asterisco.
+/**
+ * @brief Desenha um asterisco vermelho em uma coordenada.
+ *
+ * @param svg  Ponteiro para o arquivo SVG.
+ * @param x    Coordenada x do centro do asterisco.
+ * @param y    Coordenada y do centro do asterisco.
+ * @param size Comprimento dos “braços” do asterisco.
  */
 void svg_mark_asterisk(FILE* svg, double x, double y, double size);
 
-/* Anota uma “caixa”/medida de disparo (quando flag `v` do dsp).
- * Desenha um retângulo tracejado e (opcionalmente) um rótulo.
- * Se label for NULL, não imprime texto.
+/**
+ * @brief Desenha uma caixa de marcação de disparo (tracejada) e, opcionalmente, um rótulo.
+ *
+ * @param svg   Ponteiro para o arquivo SVG.
+ * @param x     Coordenada x do canto inferior esquerdo da caixa.
+ * @param y     Coordenada y do canto inferior esquerdo da caixa.
+ * @param w     Largura da caixa.
+ * @param h     Altura da caixa.
+ * @param label Texto do rótulo; se for NULL, nada é rotulado.
  */
 void svg_mark_shot_box(FILE* svg, double x, double y, double w, double h, const char* label);

@@ -9,6 +9,7 @@
         "processador.h": "c",
         "geometria.h": "c",
         "forma.h": "c",
-        "pilha.h": "c"
+        "pilha.h": "c",
+        "geo_io.h": "c"
     }
 }

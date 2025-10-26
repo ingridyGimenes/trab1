@@ -1,6 +1,4 @@
-# ==========================
-# Bocha Geométrica — Makefile
-# ==========================
+
 
 # Nome do binário final
 APP      := app
@@ -42,9 +40,9 @@ CFLAGS  += -fsanitize=address,undefined -fno-omit-frame-pointer
 LDFLAGS += -fsanitize=address,undefined
 endif
 
-# ==========================
+# 
 # Alvos principais
-# ==========================
+# 
 .PHONY: all clean run dirs
 
 all: dirs $(BIN)/$(APP)
@@ -74,10 +72,3 @@ clean:
 	@echo "  [CLEAN]"
 	@rm -rf $(BUILD) $(BIN)
 
-# ==========================
-# Dicas de uso:
-#  - Compilar:            make
-#  - Compilar com ASAN:   make SAN=1
-#  - Rodar com args:      make run ARGS="-e in -f cidade.geo -o out -q a.qry"
-#  - Limpar:              make clean
-# ==========================

@@ -5,7 +5,7 @@
 #include "retangulo.h"
 #include "linha.h"
 #include "texto.h"
-#include "/workspaces/trab1/tads_trabalho/geometria.h"  // aqui ficam as implementações das funções geométricas
+#include "../tads_trabalho/geometria.h" // aqui ficam as implementações das funções geométricas
 
 typedef struct {
     char tipo;

@@ -1,6 +1,8 @@
+
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
 #include "retangulo.h"
 
 typedef struct {
@@ -25,10 +27,17 @@ RETANGULO criaRetangulo(int id, double x, double y, double largura, double altur
     r->y = y;
     r->largura = largura;
     r->altura = altura;
-    r->cor_b = strdup(corB);
-    r->cor_p = strdup(corP);
 
+     if (!corB) corB = "#000000";
+    if (!corP) corP = "none";
+    r->cor_b = malloc(strlen(corB) + 1);
+    r->cor_p = malloc(strlen(corP) + 1);
+    if (!r->cor_b || !r->cor_p) { fprintf(stderr, "Erro: malloc cores ret\n"); exit(1); }
+    strcpy(r->cor_b, corB);
+    strcpy(r->cor_p, corP);
     return (RETANGULO)r;
+
+    
 }
 
 int getIdRetangulo(RETANGULO r) { return ((Retangulo*)r)->id; }
@@ -47,14 +56,26 @@ void setAlturaRetangulo(RETANGULO r, double h) { ((Retangulo*)r)->altura = h; }
 
 void setCorBordaRetangulo(RETANGULO r, const char* corB) {
     Retangulo* ret = (Retangulo*)r;
-    free(ret->cor_b);
-    ret->cor_b = strdup(corB);
+    if (!corB) corB = "#000000";
+    size_t need = strlen(corB) + 1;
+    if (!ret->cor_b || strlen(ret->cor_b) + 1 < need) {
+        char* tmp = realloc(ret->cor_b, need);
+        if (!tmp) { fprintf(stderr, "Erro: realloc cor_b\n"); exit(1); }
+        ret->cor_b = tmp;
+    }
+    strcpy(ret->cor_b, corB);
 }
 
 void setCorPreenchimentoRetangulo(RETANGULO r, const char* corP) {
     Retangulo* ret = (Retangulo*)r;
-    free(ret->cor_p);
-    ret->cor_p = strdup(corP);
+    if (!corP) corP = "none";
+    size_t need = strlen(corP) + 1;
+    if (!ret->cor_p || strlen(ret->cor_p) + 1 < need) {
+        char* tmp = realloc(ret->cor_p, need);
+        if (!tmp) { fprintf(stderr, "Erro: realloc cor_p\n"); exit(1); }
+        ret->cor_p = tmp;
+    }
+    strcpy(ret->cor_p, corP);
 }
 
 double calculaAreaRetangulo(RETANGULO r) {
@@ -64,21 +85,8 @@ double calculaAreaRetangulo(RETANGULO r) {
 
 RETANGULO clonaRetangulo(RETANGULO r, int novoId) {
     Retangulo* orig = (Retangulo*)r;
-    Retangulo* novo = malloc(sizeof(Retangulo));
-    if (!novo) {
-        fprintf(stderr, "Erro ao clonar retângulo.\n");
-        exit(1);
-    }
-
-    novo->id = novoId;
-    novo->x = orig->x;
-    novo->y = orig->y;
-    novo->largura = orig->largura;
-    novo->altura = orig->altura;
-    novo->cor_b = strdup(orig->cor_b);
-    novo->cor_p = strdup(orig->cor_p);
-
-    return (RETANGULO)novo;
+    return criaRetangulo(novoId, orig->x, orig->y, orig->largura, orig->altura,
+                         orig->cor_b, orig->cor_p);
 }
 
 void inverterCoresRetangulo(RETANGULO r) {

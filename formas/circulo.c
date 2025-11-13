@@ -1,6 +1,7 @@
+
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include "circulo.h"
 
@@ -24,8 +25,15 @@ CIRCULO criaCirculo(int id, double x, double y, double r, const char* corB, cons
     c->x = x;
     c->y = y;
     c->raio = r;
-    c->cor_b = strdup(corB);
-    c->cor_p = strdup(corP);
+
+     if (!corB) corB = "#000000";
+    if (!corP) corP = "none";
+    c->cor_b = malloc(strlen(corB) + 1);
+    c->cor_p = malloc(strlen(corP) + 1);
+    if (!c->cor_b || !c->cor_p) { fprintf(stderr, "Erro: malloc cores ret\n"); exit(1); }
+    strcpy(c->cor_b, corB);
+    strcpy(c->cor_p, corP);
+   
     return (CIRCULO)c;
 }
 
@@ -41,16 +49,26 @@ void setXCirculo(CIRCULO c, double x) { ((Circulo*)c)->x = x; }
 void setYCirculo(CIRCULO c, double y) { ((Circulo*)c)->y = y; }
 void setRaioCirculo(CIRCULO c, double r) { ((Circulo*)c)->raio = r; }
 
-void setCorBordaCirculo(CIRCULO c, const char* novaCor) {
+void setCorBordaCirculo(CIRCULO c, const char* corB) {
     Circulo* cir = (Circulo*)c;
-    free(cir->cor_b);
-    cir->cor_b = strdup(novaCor);
+     if (!corB) corB = "#000000";
+    size_t need = strlen(corB) + 1;
+    if (!cir->cor_b || strlen(cir->cor_b) + 1 < need) {
+        char* tmp = realloc(cir->cor_b, need);
+        if (!tmp) { fprintf(stderr, "Erro: realloc cor_b\n"); exit(1); }
+        cir->cor_b = tmp;
+    }
 }
 
-void setCorPreenchimentoCirculo(CIRCULO c, const char* novaCor) {
+void setCorPreenchimentoCirculo(CIRCULO c, const char* corP) {
     Circulo* cir = (Circulo*)c;
-    free(cir->cor_p);
-    cir->cor_p = strdup(novaCor);
+      if (!corP) corP = "#000000";
+    size_t need = strlen(corP) + 1;
+    if (!cir->cor_b || strlen(cir->cor_b) + 1 < need) {
+        char* tmp = realloc(cir->cor_b, need);
+        if (!tmp) { fprintf(stderr, "Erro: realloc cor_b\n"); exit(1); }
+        cir->cor_b = tmp;
+    }
 }
 
 double calculaAreaCirculo(CIRCULO c) {
@@ -60,19 +78,8 @@ double calculaAreaCirculo(CIRCULO c) {
 
 CIRCULO clonaCirculo(CIRCULO c, int novoId) {
     Circulo* orig = (Circulo*)c;
-    Circulo* novo = malloc(sizeof(Circulo));
-    if (!novo) {
-        fprintf(stderr, "Erro ao clonar círculo.\n");
-        exit(1);
-    }
-
-    novo->id = novoId;
-    novo->x = orig->x;
-    novo->y = orig->y;
-    novo->raio = orig->raio;
-    novo->cor_b = strdup(orig->cor_b);
-    novo->cor_p = strdup(orig->cor_p);
-    return (CIRCULO)novo;
+  return criaCirculo(novoId, orig->x, orig->y, orig->raio,
+                         orig->cor_b, orig->cor_p);
 }
 
 void inverterCoresCirculo(CIRCULO c) {

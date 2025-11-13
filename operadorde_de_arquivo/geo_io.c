@@ -1,7 +1,9 @@
+
+#include <string.h>
 #include "geo_io.h"
 
 #include <stdlib.h>
-#include <string.h>
+
 #include <ctype.h>
 
 /* ------------------------------------------------------------------
@@ -39,63 +41,6 @@ static FORMA mkFormaTexto(int id, double x, double y,
     return criaForma('t', t);
 }
 
-
-/* Wrappers para criar FORMA a partir dos TADs concretos */
-/* Wrappers para criar FORMA a partir dos TADs concretos */
-/* ------------------------------------------------------------------
-   ADAPTADORES para criação das formas
-   Mapeie estes prototypes para as SUAS funções reais.
-   A ideia é que cada criador já retorne um FORMA pronto.
-   Se no seu projeto cada forma possui um .h específico
-   (circulo.h, retangulo.h, linha.h, texto.h) com assinaturas
-   diferentes, troque aqui pelos nomes reais.
-   ------------------------------------------------------------------ */
-
-/* Círculo: c i x y r corb corp */
-/* extern FORMA criaCirculo(int id, double x, double y, double r,
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-// removed broken extern
-                         
-static char* next_tok(char **cursor) {
-    char *s = *cursor;
-    // pula espaços em branco no começo
-    while (*s && isspace((unsigned char)*s)) s++;
-    // se chegou ao final da string, acabou
-    if (!*s) { *cursor = s; return NULL; }
-
-    // marca o início do token
-    char *start = s;
-
-    // anda até o próximo espaço ou fim da string
-    while (*s && !isspace((unsigned char)*s)) s++;
-
-    // se não acabou a string, termina o token com '\0'
-    if (*s) {
-        *s = '\0';
-        s++;
-    }
-
-    // atualiza o cursor e retorna o token encontrado
-    *cursor = s;
-    return start;
-}
-
-/* ------------------------------------------------------------------
-   Utilidades de parsing
-   ------------------------------------------------------------------ */
 
 static char* next_tok(char **cursor) {
     char *s = *cursor;

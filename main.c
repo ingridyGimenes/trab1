@@ -1,10 +1,12 @@
-// main.c - Bocha Geométrica (C99)
 
+
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <errno.h>
 
+#include <errno.h>
+#include "formas/forma.h"                // destruirForma(FORMA)
+#include "tads_trabalho/carregador.h"
 #include "tads_gerais/fila.h"
 #include "operadorde_de_arquivo/geo_io.h"    // int geo_executar(FILE*, FILA, FILE*)
 #include "operadorde_de_arquivo/qry_io.h"    // qry_bind_svg(...), int qry_executar(FILE*, FILA, FILE*)
@@ -18,6 +20,9 @@ static const char* path_sep(void) {
 #else
     return "/";
 #endif
+}
+static void free_forma_cb(void* p) {
+    if (p) destruirForma((FORMA)p);
 }
 
 static void join2(char *dst, size_t sz, const char *a, const char *b) {
@@ -36,6 +41,32 @@ static void basename_no_ext(char *dst, size_t sz, const char *filename) {
     snprintf(dst, sz, "%s", base);
     char *dot = strrchr(dst, '.');
     if (dot) *dot = '\0';
+}
+
+// Monta "<base_geo>-<base_qry>.<ext>" em dst, cortando base_geo se necessário
+static int make_pair_name(char *dst, size_t dsz,
+                          const char *base_geo, const char *base_qry,
+                          const char *ext)
+{
+    // espaço para: '-' + base_qry + '.' + ext + '\0'
+    size_t need_suffix = 1 + strlen(base_qry) + 1 + strlen(ext) + 1;
+    size_t max_geo = (dsz > need_suffix) ? (dsz - need_suffix) : 0;
+
+    // corta base_geo se for grande demais
+    int n = snprintf(dst, dsz, "%.*s-%s.%s",
+                     (int)max_geo, base_geo, base_qry, ext);
+    if (n < 0 || (size_t)n >= dsz) return 0; // ainda assim estourou
+    return 1;
+}
+
+// Monta "<base>.svg" em dst, cortando base se necessário
+static int make_svg_single(char *dst, size_t dsz, const char *base) {
+    // espaço para ".svg" + '\0'
+    size_t need_suffix = 4 + 1;
+    size_t max_base = (dsz > need_suffix) ? (dsz - need_suffix) : 0;
+    int n = snprintf(dst, dsz, "%.*s.svg", (int)max_base, base);
+    if (n < 0 || (size_t)n >= dsz) return 0;
+    return 1;
 }
 
 // --- CLI --------------------------------------------------------------------
@@ -105,7 +136,10 @@ int main(int argc, char **argv) {
     basename_no_ext(base_geo, sizeof base_geo, args.geo);
     {
         char svg_name[512];
-        snprintf(svg_name, sizeof svg_name, "%s.svg", base_geo);
+        if (!make_svg_single(svg_name, sizeof svg_name, base_geo)) {
+            fprintf(stderr, "Erro: nome do SVG inicial grande demais.\n");
+            return 3;
+        }
         join2(svg_inicial_path, sizeof svg_inicial_path, args.bsd, svg_name);
     }
 
@@ -132,14 +166,25 @@ int main(int argc, char **argv) {
     }
 
     // Saídas do .qry: <bsd>/<base_geo>-<base_qry>.txt e .svg
+    if(args.qry){
     char base_qry[256];
     basename_no_ext(base_qry, sizeof base_qry, args.qry);
 
     char out_txt_path[1024], out_svg_path[1024];
     {
         char name_txt[512], name_svg[512];
-        snprintf(name_txt, sizeof name_txt, "%s-%s.txt", base_geo, base_qry);
-        snprintf(name_svg, sizeof name_svg, "%s-%s.svg", base_geo, base_qry);
+
+        if (!make_pair_name(name_txt, sizeof name_txt, base_geo, base_qry, "txt")) {
+            fprintf(stderr, "Erro: nome TXT grande demais.\n");
+            fclose(fqry);
+            return 5;
+        }
+        if (!make_pair_name(name_svg, sizeof name_svg, base_geo, base_qry, "svg")) {
+            fprintf(stderr, "Erro: nome SVG grande demais.\n");
+            fclose(fqry);
+            return 5;
+        }
+
         join2(out_txt_path, sizeof out_txt_path, args.bsd, name_txt);
         join2(out_svg_path, sizeof out_svg_path, args.bsd, name_svg);
     }
@@ -178,6 +223,14 @@ int main(int argc, char **argv) {
         svg_end(sctx_qry);
         fclose(fsvg_qry);
     }
+    }
+    
+// --- liberar tudo antes de sair ---
+if (chao) {
+    destruirFila(chao, free_forma_cb);
+}
 
+// libera estilo global definido por 'ts' (se tiver sido criado)
+destruirCarregador();
     return 0;
 }

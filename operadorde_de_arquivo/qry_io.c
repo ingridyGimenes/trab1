@@ -1,7 +1,9 @@
+
+#include <string.h>
 #include "qry_io.h"
 
 #include <stdlib.h>
-#include <string.h>
+
 #include <ctype.h>
 #include <stdbool.h>
 
@@ -78,11 +80,7 @@ static PILHA reg_get_or_make_carr(int id) {
     return p;
 }
 
-static PILHA reg_get_carr(int id) {
-    int k = idx(id);
-    if (g_carrs[k].usado && g_carrs[k].id == id) return g_carrs[k].p;
-    return NULL;
-}
+
 
 /* util: próximo token num buffer mutável (quebra por espaço) */
 static char* next_tok(char **cursor) {

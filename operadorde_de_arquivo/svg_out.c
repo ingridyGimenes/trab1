@@ -1,12 +1,14 @@
+
+#include <string.h>
 #include "svg_out.h"
 #include <stdlib.h>
-#include <string.h>
+
 #include <math.h>
 
-/* ============================================================
-   ADAPTADORES de acesso aos TADs de forma
-   -> MAPEIE estes "getters" para as suas funções reais
-   ============================================================ */
+static const char* safe(const char* s) { return (s && *s) ? s : "none"; }
+
+
+
 
 static char get_tipo(FORMA F) {
     /* seu forma.h provavelmente já tem isso */
@@ -96,44 +98,36 @@ SVG svg_begin(FILE* out, double minX, double minY, double maxX, double maxY,
    ============================================================ */
 static void draw_circle(SVG s, void* C) {
     fprintf(s->out,
-        "  <circle cx=\"%.2f\" cy=\"%.2f\" r=\"%.2f\" stroke=\"%s\" fill=\"%s\" />\n",
-        C_x(C), C_y(C), C_r(C), C_corb(C), C_corp(C));
+  "  <circle cx=\"%.2f\" cy=\"%.2f\" r=\"%.2f\" stroke=\"%s\" fill=\"%s\" />\n",
+  C_x(C), C_y(C), C_r(C), safe(C_corb(C)), safe(C_corp(C)));
 }
 
 static void draw_rect(SVG s, void* R) {
-    fprintf(s->out,
-        "  <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\" stroke=\"%s\" fill=\"%s\" />\n",
-        R_x(R), R_y(R), R_w(R), R_h(R), R_corb(R), R_corp(R));
+   fprintf(s->out,
+  "  <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\" stroke=\"%s\" fill=\"%s\" />\n",
+  R_x(R), R_y(R), R_w(R), R_h(R), safe(R_corb(R)), safe(R_corp(R)));
 }
+
 
 static void draw_line(SVG s, void* L) {
-    fprintf(s->out,
-        "  <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\" stroke=\"%s\" stroke-width=\"2\" />\n",
-        L_x1(L), L_y1(L), L_x2(L), L_y2(L), L_cor(L));
+   fprintf(s->out,
+  "  <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\" stroke=\"%s\" stroke-width=\"2\" />\n",
+  L_x1(L), L_y1(L), L_x2(L), L_y2(L), safe(L_cor(L)));
 }
+
 
 static void draw_text(SVG s, void* T) {
-    /* âncora: 'i' (start), 'm' (middle), 'f' (end) */
-    char a = T_anc(T);
-    const char* anchor = (a=='m') ? "middle" : (a=='f' ? "end" : "start");
-    fprintf(s->out,
-        "  <text x=\"%.2f\" y=\"%.2f\" fill=\"%s\" stroke=\"%s\" text-anchor=\"%s\">",
-        T_x(T), T_y(T), T_corp(T), T_corb(T), anchor);
-    /* escape básico (aqui assumimos que o txt não tem chars especiais) */
-    fputs(T_txt(T), s->out);
-    fputs("</text>\n", s->out);
+  char a = T_anc(T);
+const char* anchor = (a=='m') ? "middle" : (a=='f' ? "end" : "start");
+const char* fill   = safe(T_corp(T));
+const char* stroke = safe(T_corb(T));
+const char* txt    = T_txt(T) ? T_txt(T) : "";
 
-    /* Se quiser desenhar também o “segmento induzido” (útil para colisão), descomente:
-    size_t len = strlen(T_txt(T));
-    double cl = 10.0 * (double)len;
-    double x1, y1, x2, y2;
-    if (a=='i'){ x1=T_x(T); y1=T_y(T); x2=T_x(T)+cl; y2=T_y(T); }
-    else if(a=='f'){ x1=T_x(T)-cl; y1=T_y(T); x2=T_x(T); y2=T_y(T); }
-    else { x1=T_x(T)-cl/2; y1=T_y(T); x2=T_x(T)+cl/2; y2=T_y(T); }
-    fprintf(s->out,"  <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\" stroke=\"gray\" stroke-dasharray=\"4,3\"/>\n",
-            x1,y1,x2,y2);
-    */
+fprintf(s->out,
+  "  <text x=\"%.2f\" y=\"%.2f\" fill=\"%s\" stroke=\"%s\" text-anchor=\"%s\">%s</text>\n",
+  T_x(T), T_y(T), fill, stroke, anchor, txt);
 }
+
 
 /* ============================================================
    API pública

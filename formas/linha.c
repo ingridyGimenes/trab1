@@ -1,6 +1,8 @@
+
+#include <string.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "linha.h"
 
 typedef struct {
@@ -21,7 +23,14 @@ LINHA criaLinha(int id, double x1, double y1, double x2, double y2, const char* 
     l->y1 = y1;
     l->x2 = x2;
     l->y2 = y2;
-    l->cor = strdup(cor);
+    
+    if (!cor) cor = "none";
+    l->cor = malloc(strlen(cor) + 1);
+    
+    if (!l->cor) { fprintf(stderr, "Erro: malloc cores linha\n"); exit(1); }
+    strcpy(l->cor, cor);
+   
+   
 
     return (LINHA)l;
 }
@@ -41,25 +50,18 @@ void setY2Linha(LINHA l, double y) { ((Linha*)l)->y2 = y; }
 
 void setCorLinha(LINHA l, const char* cor) {
     Linha* li = (Linha*)l;
-    free(li->cor);
-    li->cor = strdup(cor);
+      if (cor) cor = "#000000";
+    size_t need = strlen(cor) + 1;
+    if (!li->cor || strlen(li->cor) + 1 < need) {
+        char* tmp = realloc(li->cor, need);
+        if (!tmp) { fprintf(stderr, "Erro: realloc cor\n"); exit(1); }
+        li->cor = tmp;
+    }
 }
 
 LINHA clonaLinha(LINHA l, int novoId) {
     Linha* orig = (Linha*)l;
-    Linha* novo = malloc(sizeof(Linha));
-    if (!novo) {
-        fprintf(stderr, "Erro ao clonar linha.\n");
-        exit(1);
-    }
-
-    novo->id = novoId;
-    novo->x1 = orig->x1;
-    novo->y1 = orig->y1;
-    novo->x2 = orig->x2;
-    novo->y2 = orig->y2;
-    novo->cor = strdup(orig->cor);
-    return (LINHA)novo;
+    return criaLinha(novoId, orig->x1, orig->y1, orig->x2, orig->y2, orig->cor);
 }
 
 void destruirLinha(LINHA l) {

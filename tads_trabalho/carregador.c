@@ -1,6 +1,8 @@
+
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
 
 #include "carregador.h"
 #include "../formas/circulo.h"
@@ -143,10 +145,14 @@ void carregarGeo(const char* caminhoGeo, FILA filaChao) {
                 break;
             }
             // lê o restante da linha como conteúdo
-            char linhaRestante[1024] = {0};
-            fgets(linhaRestante, sizeof(linhaRestante), geo);
-            strip(linhaRestante);
-            strip_quotes(linhaRestante); // remove aspas se veio "assim"
+                char linhaRestante[1024] = {0};
+    if (!fgets(linhaRestante, sizeof linhaRestante, geo)) {
+        linhaRestante[0] = '\0';       // sem conteúdo se falhar
+    } else {
+        strip(linhaRestante);
+        strip_quotes(linhaRestante);
+    }
+            
 
             char ancora = ancoraStr[0]; // pega o primeiro char
 
@@ -174,9 +180,10 @@ void carregarGeo(const char* caminhoGeo, FILA filaChao) {
         // comando desconhecido: consome resto da linha para evitar loop
         // --------------------------
         else {
-            char dump[1024];
-            fgets(dump, sizeof(dump), geo);
-            fprintf(stderr, "[carregador] comando desconhecido: %s\n", cmd);
+                char dump[1024];
+    if (!fgets(dump, sizeof dump, geo)) {
+        break; // EOF/erro: sai do loop
+    }
         }
     }
 
